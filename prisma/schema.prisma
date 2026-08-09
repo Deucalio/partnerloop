@@ -30,3 +30,152 @@ model Session {
   refreshToken        String?
   refreshTokenExpires DateTime?
 }
+
+model Store {
+  shop                String   @id
+  onboardingCompleted Boolean  @default(false)
+  programs            Program[]
+  businessInfo        BusinessInfo?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Program {
+  id              String   @id @default(uuid())
+  shopId          String
+  name            String
+  description     String?
+  status          ProgramStatus @default(ACTIVE)
+  isDefault       Boolean  @default(false)
+  
+  commissionConfig CommissionConfig?
+  trackingConfig   TrackingConfig?
+  creators         Creator[]
+
+  store           Store    @relation(fields: [shopId], references: [shop], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum ProgramStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model CommissionConfig {
+  id        String   @id @default(uuid())
+  programId String   @unique
+  type      CommissionType
+  amount    Float
+
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+}
+
+enum CommissionType {
+  PERCENTAGE
+  FIXED_PER_ORDER
+  FIXED_PER_ITEM
+}
+
+model TrackingConfig {
+  id                    String   @id @default(uuid())
+  programId             String   @unique
+  linkTrackingEnabled   Boolean  @default(true)
+  couponTrackingEnabled Boolean  @default(false)
+
+  program               Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+}
+
+model BusinessInfo {
+  id                  String   @id @default(uuid())
+  shopId              String   @unique
+  industry            String
+  businessDescription String?
+
+  store               Store    @relation(fields: [shopId], references: [shop], onDelete: Cascade)
+}
+
+model Creator {
+  id              String   @id @default(uuid())
+  programId       String
+  firstName       String
+  lastName        String
+  email           String
+  status          CreatorStatus @default(PENDING)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  program         Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  referrals       Referral[]
+  commissions     Commission[]
+  payouts         Payout[]
+}
+
+enum CreatorStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  INACTIVE
+}
+
+model Referral {
+  id              String   @id @default(uuid())
+  creatorId       String
+  orderId         String?  // Shopify order ID
+  orderNumber     String?  // Shopify order number (e.g. #1042)
+  orderAmount     Float
+  status          ReferralStatus @default(PENDING)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator         Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  commission      Commission?
+}
+
+enum ReferralStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Commission {
+  id              String   @id @default(uuid())
+  creatorId       String
+  referralId      String   @unique
+  payoutId        String?
+  amount          Float
+  status          CommissionStatus @default(PENDING)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator         Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  referral        Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
+  payout          Payout?  @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+model Payout {
+  id              String   @id @default(uuid())
+  creatorId       String
+  amount          Float
+  status          PayoutStatus @default(PENDING)
+  paidAt          DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator         Creator      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  commissions     Commission[]
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
