@@ -220,7 +220,7 @@ export default function Dashboard() {
           borderLeft: '4px solid #733296',
           overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', background: 'linear-gradient(to right, var(--p-color-bg-surface), #f4eaff)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', background: 'var(--p-color-bg-surface)' }}>
             <div style={{ flex: '1 1 50%', padding: 'var(--p-space-500)', minWidth: '350px' }}>
               <BlockStack gap="400">
                 <InlineStack gap="300" blockAlign="center">
@@ -327,7 +327,7 @@ export default function Dashboard() {
               </BlockStack>
             </div>
             <div style={{ flex: '1 1 50%', position: 'relative', minHeight: '200px' }}>
-               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundImage: 'url(/cover-illustration.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundImage: 'url(/cover-illustration.jpg)', backgroundSize: 'cover', backgroundPosition: 'left center' }}></div>
             </div>
           </div>
         </div>
