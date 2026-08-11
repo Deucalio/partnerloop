@@ -41,7 +41,7 @@ export async function getCommissionsByCreator({ shop, status = "PENDING" }) {
         orderBy: { createdAt: "asc" },
         select: { amount: true, reason: true, createdAt: true },
       },
-      referral: { select: { orderNumber: true, orderAmount: true, createdAt: true } },
+      referral: { select: { orderId: true, orderNumber: true, orderAmount: true, createdAt: true } },
       creator: {
         select: {
           id: true,
@@ -88,6 +88,7 @@ export async function getCommissionsByCreator({ shop, status = "PENDING" }) {
       status: commission.status,
       rejectionReason: commission.rejectionReason,
       payoutId: commission.payoutId,
+      orderId: commission.referral?.orderId ?? null,
       orderNumber: commission.referral?.orderNumber ?? null,
       orderAmount: commission.referral?.orderAmount ?? 0,
       createdAt: commission.createdAt.toISOString(),
