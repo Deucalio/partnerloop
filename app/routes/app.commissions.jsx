@@ -285,88 +285,149 @@ export default function Commissions() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         :root {
+          --page-bg: #f4f5f7;
           --blue-900: #1E3A8A;
           --blue-800: #1D4ED8;
-          --blue-600: #2563EB;
-          --blue-tint: #EEF4FF;
-          --amber-600: #F59E0B;
-          --amber-400: #FFB648;
-          --amber-tint: #FFF6E5;
-          --amber-text: #92620A;
-          --ink: #161A25;
-          --muted: #6B7280;
-          --muted-2: #8A93A3;
-          --green-bg: #DEFBE8;
-          --green-text: #0F8A4B;
-          --border: #E4E8F0;
+          --blue: #2954e0;
+          --blue-dark: #132f8c;
+          --blue-50: #eef2fe;
+          --navy: #1b2545;
+          --amber-bg: #FEF3C7;
+          --amber-text: #92400E;
+          --green-bg: #e3f6ec;
+          --green-text: #0e7a4d;
+          --red-bg: #fdeceb;
+          --red-text: #b3261e;
+          --ink: #1a1c1f;
+          --ink-secondary: #6b7177;
+          --ink-muted: #9297a0;
+          --border: #e4e6ea;
           --border-soft: #EBEEF4;
+          --white: #ffffff;
+          --shadow-card: 0 1px 2px rgba(20,22,30,.04), 0 10px 30px rgba(20,22,30,.05);
+          --shadow-mini: 0 12px 24px rgba(19,25,60,.22);
         }
 
         .commissions-page * { box-sizing: border-box; }
-        .commissions-page { font-family: 'Inter', system-ui, sans-serif; background: #F0F2F6; color: var(--ink); margin: -1rem; min-height: 100vh; }
-        .commissions-page .page-inner { max-width: 1280px; margin: 0 auto; padding: 24px 28px 70px; }
+        .commissions-page { font-family: 'Inter', system-ui, sans-serif; background: var(--page-bg); color: var(--ink); margin: -1rem; min-height: 100vh; }
+        .commissions-page .page-inner { max-width: 1180px; margin: 0 auto; padding: 40px 32px 80px; }
+
+        /* HERO */
+        .hero { background:var(--white);border-radius:20px;box-shadow:var(--shadow-card); display:flex;overflow:hidden;margin-bottom:28px; }
+        .hero-art { position:relative;width:36%;min-width:320px; background:linear-gradient(135deg,#3a63ea 0%,var(--navy) 100%); overflow:hidden;padding:36px; }
+        .dots { position:absolute;top:-10px;right:-10px;width:170px;height:170px; background-image:radial-gradient(rgba(255,255,255,.4) 1.5px, transparent 1.5px); background-size:14px 14px;opacity:.5; }
+        .stack { position:relative;height:224px;margin-top:14px; }
+        .mini { position:absolute;width:196px;border-radius:14px;background:#fff; box-shadow:var(--shadow-mini);overflow:hidden; }
+        .mini .bar { background:var(--navy);color:#fff;font-size:12px;font-weight:700;padding:8px 12px; }
+        .mini .body { padding:12px; }
+        .mini .avatar { width:26px;height:26px;border-radius:50%;background:var(--blue-50);color:var(--blue); font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:8px; }
+        .mini .line { height:6px;border-radius:4px;background:#e8eaee;margin-bottom:6px; }
+        .mini .line.w60 { width:60%; }
+        .mini .line.w80 { width:80%; }
+        .mini .amount { font-size:17px;font-weight:800;color:var(--navy);margin:2px 0 8px; }
+        .mini .tag { display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700; padding:4px 9px;border-radius:999px;margin:0 12px 12px; }
+        .mini .tag.blue { background:var(--blue-50);color:var(--blue); }
+        .mini .tag.amber { background:var(--amber-bg);color:var(--amber-text); }
+        .icon-sm { width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.4; }
+        .mini.c1 { top:0;left:2px;transform:rotate(-8deg);z-index:1; }
+        .mini.c2 { top:38px;left:60px;transform:rotate(-2deg);z-index:2; }
+        .mini.c3 { top:86px;left:20px;transform:rotate(4deg);z-index:3; }
+        .hero-copy { flex:1;padding:36px 44px;display:flex;flex-direction:column;justify-content:center; }
+        .eyebrow { align-self:flex-start;background:var(--blue-50);color:var(--blue); font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:14px; }
+        .hero-copy h2 { font-size:23px;font-weight:700;margin:0 0 8px; }
+        .hero-copy>p { color:var(--ink-secondary);font-size:14.5px;line-height:1.6;margin:0 0 16px;max-width:460px; }
+        .bullets { list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px; }
+        .bullets li { display:flex;gap:10px;font-size:14px;color:var(--ink-secondary);align-items:flex-start; }
+        .bullets .dot { width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:7px;flex:none; }
+        .bullets b { color:var(--ink); }
+
+        /* STAT CARDS */
+        .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px; }
+        .stat-card { display:flex;align-items:center;gap:14px;text-align:left; background:var(--white);border:1px solid var(--border);border-radius:16px; box-shadow:var(--shadow-card);padding:18px 20px;cursor:pointer; transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+        .stat-card:hover { transform:translateY(-2px);box-shadow:0 6px 14px rgba(20,22,30,.06),0 16px 36px rgba(20,22,30,.08); }
+        .stat-icon { width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none; }
+        .stat-icon svg { width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2; }
+        .stat-card.amber .stat-icon { background:var(--amber-bg);color:var(--amber-text); }
+        .stat-card.blue .stat-icon { background:var(--blue-50);color:var(--blue); }
+        .stat-card.green .stat-icon { background:var(--green-bg);color:var(--green-text); }
+        .stat-card.red .stat-icon { background:var(--red-bg);color:var(--red-text); }
+        .stat-card.amber:hover { border-color:var(--amber-text); }
+        .stat-card.blue:hover { border-color:var(--blue); }
+        .stat-card.green:hover { border-color:var(--green-text); }
+        .stat-card.red:hover { border-color:var(--red-text); }
+        .stat-text { display:flex;flex-direction:column;gap:1px;min-width:0; }
+        .stat-label { font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-secondary); }
+        .stat-num { font-size:21px;font-weight:800;line-height:1.3;color:var(--ink); }
+        .stat-card.amber .stat-num { color:var(--amber-text); }
+        .stat-card.blue .stat-num { color:var(--blue); }
+        .stat-card.green .stat-num { color:var(--green-text); }
+        .stat-card.red .stat-num { color:var(--red-text); }
+        .stat-cap { font-size:12.5px;color:var(--ink-muted); }
 
         /* Custom top bar */
-        .commissions-page .header-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
-        .commissions-page .header-left h1 { margin: 0; font-size: 20px; font-weight: 800; }
-        .commissions-page .header-left p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
-        .commissions-page .header-right { text-align: right; }
-        .commissions-page .header-right h2 { margin: 0; font-size: 18px; font-weight: 800; }
-        .commissions-page .header-right p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
+        .commissions-page .page-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; }
+        .commissions-page .page-head h1 { margin: 0 0 4px; font-size: 26px; font-weight: 700; }
+        .commissions-page .page-head p { margin: 0; font-size: 14px; color: var(--ink-secondary); }
+        .commissions-page .btn-ghost { background: transparent; border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; }
+        .commissions-page .btn-ghost:hover { background: #F9FAFB; }
 
         /* Tabs */
-        .commissions-page .tabs-container { background: #fff; border: 1px solid var(--border-soft); border-radius: 12px; box-shadow: 0 1px 2px rgba(20,30,60,.03); padding: 4px; display: flex; gap: 4px; width: fit-content;}
-        .commissions-page .tab { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 13.5px; font-weight: 600; color: var(--muted); border-radius: 8px; cursor: pointer; transition: all .15s ease; border: none; background: transparent; }
-        .commissions-page .tab.active { background: #F4F6F8; color: var(--ink); }
+        .commissions-page .tabs-container { background: #f1f2f5; padding: 4px; border-radius: 11px; display: flex; gap: 4px; width: fit-content;}
+        .commissions-page .tab { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--ink-secondary); border-radius: 8px; cursor: pointer; transition: all .15s ease; border: none; background: transparent; }
+        .commissions-page .tab.active { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
         .commissions-page .tab:hover:not(.active) { background: #F9FAFB; }
-        .commissions-page .tab-badge { font-size: 11px; font-weight: 700; background: #E7EAF1; color: #4B5563; padding: 2px 8px; border-radius: 100px; }
-        .commissions-page .tab.active .tab-badge { background: #D1D5DB; }
+        .commissions-page .tab-badge { display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;font-size:10.5px;font-weight:800; }
+        .commissions-page .tab.active .tab-badge { background: #D1D5DB; color: #4B5563; }
+        .commissions-page .tab-badge.amber { background: var(--amber-bg); color: var(--amber-text); }
+        .commissions-page .tab-badge.blue { background: var(--blue-50); color: var(--blue); }
+        .commissions-page .tab-badge.green { background: var(--green-bg); color: var(--green-text); }
+        .commissions-page .tab-badge.red { background: var(--red-bg); color: var(--red-text); }
 
         /* List Wrapper */
-        .commissions-page .list-wrapper { background: #fff; border: 1px solid var(--border-soft); border-radius: 16px; box-shadow: 0 1px 2px rgba(20,30,60,.03); overflow: hidden; }
+        .commissions-page .panel { background: #fff; border-radius: 20px; box-shadow: var(--shadow-card); padding: 26px 28px 12px; }
+        .commissions-page .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .commissions-page .panel-head h3 { font-size: 17px; font-weight: 700; margin: 0; }
 
         /* Creator Group */
-        .commissions-page .creator-group { border-bottom: 1px solid var(--border-soft); }
+        .commissions-page .creator-group { border-bottom: 1px solid var(--border); }
         .commissions-page .creator-group:last-child { border-bottom: none; }
-        .commissions-page .creator-header { padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background .15s; }
+        .commissions-page .creator-header { padding: 16px 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background .15s; }
         .commissions-page .creator-header:hover { background: #F9FAFB; }
         .commissions-page .creator-header-left { display: flex; align-items: flex-start; gap: 10px; }
         .commissions-page .creator-info h3 { margin: 0; font-size: 14.5px; font-weight: 700; }
-        .commissions-page .creator-info p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+        .commissions-page .creator-info p { margin: 2px 0 0; font-size: 13px; color: var(--ink-secondary); }
         .commissions-page .creator-header-right { display: flex; align-items: center; gap: 16px; }
         .commissions-page .creator-total { font-size: 14px; font-weight: 700; }
 
         /* Custom Checkbox */
-        .commissions-page .custom-checkbox { width: 16px; height: 16px; border: 1px solid var(--muted-2); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 2px; background: #fff; }
-        .commissions-page .custom-checkbox.checked { background: var(--blue-800); border-color: var(--blue-800); color: #fff; }
+        .commissions-page .custom-checkbox { width: 16px; height: 16px; border: 1px solid var(--ink-muted); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 2px; background: #fff; }
+        .commissions-page .custom-checkbox.checked { background: var(--blue); border-color: var(--blue); color: #fff; }
         .commissions-page .custom-checkbox svg { width: 10px; height: 10px; opacity: 0; }
         .commissions-page .custom-checkbox.checked svg { opacity: 1; }
 
         /* Buttons */
-        .commissions-page .btn { display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; border: 1px solid var(--border); background: #fff; color: #374151; transition: all .15s; }
-        .commissions-page .btn:hover { background: #F9FAFB; border-color: #C7CFDC; }
-        .commissions-page .btn-dark { background: var(--ink); color: #fff; border: none; }
+        .commissions-page .btn-dark { background: var(--ink); color: #fff; border: none; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all .15s; }
         .commissions-page .btn-dark:hover { background: #202635; }
-        .commissions-page .btn-reject { border-color: #FCCFE8; color: #BE185D; padding: 4px 10px; font-size: 12px; }
+        .commissions-page .btn-reject { border-color: #FCCFE8; color: #BE185D; padding: 4px 10px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: #fff; border-radius: 8px; cursor: pointer; transition: all .15s;}
         .commissions-page .btn-reject:hover { background: #FDF2F8; border-color: #FBCFE8; }
 
         /* Commission Rows */
-        .commissions-page .commission-row { padding: 14px 24px 14px 62px; border-top: 1px solid #F3F4F6; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background .15s; }
-        .commissions-page .commission-row:hover { background: #F9FAFB; }
+        .commissions-page .commission-row { padding: 14px 10px 14px 44px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background .15s; background: #fafbfc; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+        .commissions-page .commission-row:hover { background: #f4f5f7; }
         .commissions-page .row-left { display: flex; align-items: flex-start; gap: 14px; }
         .commissions-page .row-info { display: flex; flex-direction: column; gap: 2px; }
-        .commissions-page .row-order { font-size: 13.5px; font-weight: 600; color: var(--ink); }
-        .commissions-page .row-meta { font-size: 12.5px; color: var(--muted); }
+        .commissions-page .row-order { font-size: 13px; color: var(--ink-secondary); }
+        .commissions-page .row-meta { font-size: 12.5px; color: var(--ink-secondary); }
         .commissions-page .row-right { display: flex; align-items: center; gap: 24px; }
         .commissions-page .row-amount-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .commissions-page .row-amount { font-size: 14px; font-weight: 700; }
+        .commissions-page .row-amount { font-size: 13px; font-weight: 700; }
 
         /* Badges */
-        .commissions-page .status-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 100px; text-transform: capitalize; display: inline-block; text-align: center; }
-        .commissions-page .badge-pending { background: var(--amber-tint); color: var(--amber-text); border: 1px solid #FBE3B0; }
-        .commissions-page .badge-approved { background: var(--blue-tint-2); color: var(--blue-800); border: 1px solid #BFDBFE; }
-        .commissions-page .badge-paid { background: var(--green-bg); color: var(--green-text); border: 1px solid #A7F3D0; }
-        .commissions-page .badge-rejected { background: #FCE8F3; color: #9D174D; border: 1px solid #FBCFE8; }
+        .commissions-page .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: capitalize; }
+        .commissions-page .badge-pending { background: var(--amber-bg); color: var(--amber-text); }
+        .commissions-page .badge-approved { background: var(--blue-50); color: var(--blue); }
+        .commissions-page .badge-paid { background: var(--green-bg); color: var(--green-text); }
+        .commissions-page .badge-rejected { background: var(--red-bg); color: var(--red-text); }
 
         /* Details Table in Modal */
         .details-section { margin-bottom: 24px; }
@@ -378,188 +439,282 @@ export default function Commissions() {
       <div className="commissions-page">
         <div className="page-inner">
           
-          <div className="header-row">
-            <div className="header-left">
+          <div className="page-head">
+            <div>
               <h1>Commissions</h1>
-              <p>Review what creators have earned, then group approved commissions into a payout.</p>
+              <p>Review creator earnings and approve commissions</p>
             </div>
-            <div className="header-right">
-              <h2>{formatMoney(total)}</h2>
-              <p>{count} commissions {summaryText}</p>
+            <button className="btn-ghost" onClick={exportCSV}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export file
+            </button>
+          </div>
+
+          <div className="hero">
+            <div className="hero-art">
+              <div className="dots"></div>
+              <div className="stack">
+                <div className="mini c1">
+                  <div className="bar">Creator</div>
+                  <div className="body">
+                    <div className="avatar">SJ</div>
+                    <div className="line w80"></div>
+                    <div className="line w60"></div>
+                  </div>
+                  <span className="tag blue">
+                    <svg className="icon-sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.4l2-2a5 5 0 0 0-7-7l-1.2 1.1"/><path d="M14 11a5 5 0 0 0-7.5-.4l-2 2a5 5 0 0 0 7 7l1.1-1.1"/></svg>
+                    SARAHQ7X2
+                  </span>
+                </div>
+                <div className="mini c2">
+                  <div className="bar">Referred order</div>
+                  <div className="body">
+                    <div className="line w60"></div>
+                    <div className="amount">{formatMoney(786)}</div>
+                  </div>
+                  <span className="tag blue">Order #1762</span>
+                </div>
+                <div className="mini c3">
+                  <div className="bar">Commission</div>
+                  <div className="body">
+                    <div className="amount">{formatMoney(102.17)}</div>
+                  </div>
+                  <span className="tag amber">
+                    <svg className="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                    Pending
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="hero-copy">
+              <span className="eyebrow">Commission tracking</span>
+              <h2>Commission management</h2>
+              <p>Review creator earnings, approve commissions, and keep payouts organized.</p>
+              <ul className="bullets">
+                <li><span className="dot"></span><span><b>Review</b>&nbsp;commissions grouped by creator, with the source order attached.</span></li>
+                <li><span className="dot"></span><span><b>Approve</b>&nbsp;one at a time or in bulk before they move to a payout.</span></li>
+              </ul>
             </div>
           </div>
 
-          <div className="filters-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div className="tabs-container" style={{ margin: 0 }}>
-              {tabs.map((tab) => (
-                <button 
-                  key={tab.id}
-                  className={`tab ${status === tab.id ? 'active' : ''}`}
-                  onClick={() => changeTab(tab.id)}
-                >
-                  {tab.content} <span className="tab-badge">{tab.badge}</span>
-                </button>
-              ))}
-            </div>
-            
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', display: 'flex' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="Search creators, orders..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ padding: '8px 12px 8px 34px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px', width: '240px', outline: 'none' }}
-                />
+          <div className="stats-row">
+            <button className="stat-card amber" onClick={() => changeTab('PENDING')} style={{ borderColor: status === 'PENDING' ? 'var(--amber-text)' : '' }}>
+              <div className="stat-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
               </div>
-              <button className="btn" onClick={exportCSV}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Export
-              </button>
-            </div>
+              <div className="stat-text">
+                <span className="stat-label">Pending</span>
+                <span className="stat-num">{formatMoney(totals['PENDING']?.amount || 0)}</span>
+                <span className="stat-cap">{totals['PENDING']?.count || 0} commissions</span>
+              </div>
+            </button>
+            <button className="stat-card blue" onClick={() => changeTab('APPROVED')} style={{ borderColor: status === 'APPROVED' ? 'var(--blue)' : '' }}>
+              <div className="stat-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.3 2.3L16 10"/></svg>
+              </div>
+              <div className="stat-text">
+                <span className="stat-label">Approved</span>
+                <span className="stat-num">{formatMoney(totals['APPROVED']?.amount || 0)}</span>
+                <span className="stat-cap">{totals['APPROVED']?.count || 0} commissions</span>
+              </div>
+            </button>
+            <button className="stat-card green" onClick={() => changeTab('PAID')} style={{ borderColor: status === 'PAID' ? 'var(--green-text)' : '' }}>
+              <div className="stat-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10.5h18"/><path d="M7 15h4"/></svg>
+              </div>
+              <div className="stat-text">
+                <span className="stat-label">Paid</span>
+                <span className="stat-num">{formatMoney(totals['PAID']?.amount || 0)}</span>
+                <span className="stat-cap">{totals['PAID']?.count || 0} commissions</span>
+              </div>
+            </button>
+            <button className="stat-card red" onClick={() => changeTab('REJECTED')} style={{ borderColor: status === 'REJECTED' ? 'var(--red-text)' : '' }}>
+              <div className="stat-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </div>
+              <div className="stat-text">
+                <span className="stat-label">Rejected</span>
+                <span className="stat-num">{formatMoney(totals['REJECTED']?.amount || 0)}</span>
+                <span className="stat-cap">{totals['REJECTED']?.count || 0} commissions</span>
+              </div>
+            </button>
           </div>
 
-          <div className="list-wrapper">
-            {filteredCreators.length === 0 ? (
-              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--muted)' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px', opacity: 0.5 }}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>
-                </svg>
-                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--ink)' }}>
-                  {searchQuery ? "No matching commissions found" : emptyHeading}
-                </div>
-                <div style={{ fontSize: '13.5px', marginTop: '4px' }}>
-                  {searchQuery ? `We couldn't find any results for "${searchQuery}".` : emptySubheading}
-                </div>
-              </div>
-            ) : (
-              filteredCreators.map((group) => {
-                const ids = group.commissions.map((c) => c.id);
-                const selectedInGroup = ids.filter(id => selected.has(id));
-                const allSelected = selectedInGroup.length === ids.length && ids.length > 0;
-                const isCollapsed = collapsedGroups.has(group.creatorId);
+          <div className="panel">
+            <div className="panel-head">
+              <h3>Commission list</h3>
+            </div>
+
+            <div className="tabs-container" style={{ marginBottom: '16px' }}>
+              {tabs.map((tab) => {
+                let badgeClass = 'amber';
+                if (tab.id === 'APPROVED') badgeClass = 'blue';
+                if (tab.id === 'PAID') badgeClass = 'green';
+                if (tab.id === 'REJECTED') badgeClass = 'red';
                 
                 return (
-                  <div key={group.creatorId} className="creator-group">
-                    <div className="creator-header" onClick={() => toggleCollapse(group.creatorId)}>
-                      <div className="creator-header-left">
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', color: 'var(--muted)', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </div>
-                        {(status === "PENDING" || status === "APPROVED") && (
-                          <div 
-                            className={`custom-checkbox ${allSelected ? 'checked' : ''}`} 
-                            onClick={(e) => toggleCreator(group, e)}
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                          </div>
-                        )}
-                        <div className="creator-info">
-                          <h3>{group.name}</h3>
-                          <p>{group.commissions.length} {status.toLowerCase()} commission{group.commissions.length === 1 ? '' : 's'} · {group.programName} · <code>{group.referralCode}</code></p>
-                        </div>
-                      </div>
-                      <div className="creator-header-right">
-                        <div className="creator-total">{formatMoney(group.total)}</div>
-                        
-                        {status === "PENDING" && (
-                          <button 
-                            className="btn btn-dark" 
-                            disabled={isBusy}
-                            onClick={(e) => { e.stopPropagation(); run("approve", selectedInGroup.length > 0 ? selectedInGroup : ids); }}
-                          >
-                            {selectedInGroup.length > 0 && selectedInGroup.length < ids.length 
-                              ? `Approve ${selectedInGroup.length}` 
-                              : `Approve all`}
-                          </button>
-                        )}
-                        
-                        {status === "APPROVED" && (
-                          <button 
-                            className="btn btn-dark" 
-                            disabled={isBusy}
-                            onClick={(e) => { e.stopPropagation(); run("payout", selectedInGroup.length > 0 ? selectedInGroup : ids, { creatorId: group.creatorId }); }}
-                          >
-                            {selectedInGroup.length > 0 && selectedInGroup.length < ids.length 
-                              ? `Create payout (${selectedInGroup.length})` 
-                              : `Create payout (All)`}
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                  <button 
+                    key={tab.id}
+                    className={`tab ${status === tab.id ? 'active' : ''}`}
+                    onClick={() => changeTab(tab.id)}
+                  >
+                    {tab.content} <span className={`tab-badge ${badgeClass}`}>{tab.badge}</span>
+                  </button>
+                )
+              })}
+            </div>
 
-                    {!isCollapsed && group.commissions.map((commission) => (
-                      <div key={commission.id} className="commission-row" onClick={() => setDetailsCommission({ creator: group, commission })}>
-                        <div className="row-left">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border)', borderRadius: '10px', padding: '9px 12px', color: 'var(--ink-muted)', fontSize: '13px', maxWidth: '280px', marginBottom: '16px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input 
+                type="text" 
+                placeholder="Search creators, orders..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ border: 'none', outline: 'none', background: 'transparent', width: '100%', color: 'var(--ink)', fontSize: '13px' }}
+              />
+            </div>
+
+            <div className="list-wrapper" style={{ boxShadow: 'none', border: 'none' }}>
+              {filteredCreators.length === 0 ? (
+                <div style={{ padding: '60px', textAlign: 'center', color: 'var(--muted)' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px', opacity: 0.5 }}>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>
+                  </svg>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--ink)' }}>
+                    {searchQuery ? "No matching commissions found" : emptyHeading}
+                  </div>
+                  <div style={{ fontSize: '13.5px', marginTop: '4px' }}>
+                    {searchQuery ? `We couldn't find any results for "${searchQuery}".` : emptySubheading}
+                  </div>
+                </div>
+              ) : (
+                filteredCreators.map((group) => {
+                  const ids = group.commissions.map((c) => c.id);
+                  const selectedInGroup = ids.filter(id => selected.has(id));
+                  const allSelected = selectedInGroup.length === ids.length && ids.length > 0;
+                  const isCollapsed = collapsedGroups.has(group.creatorId);
+                  
+                  return (
+                    <div key={group.creatorId} className="creator-group">
+                      <div className="creator-header" onClick={() => toggleCollapse(group.creatorId)}>
+                        <div className="creator-header-left">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', color: 'var(--muted)', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                          </div>
                           {(status === "PENDING" || status === "APPROVED") && (
                             <div 
-                              className={`custom-checkbox ${selected.has(commission.id) ? 'checked' : ''}`} 
-                              onClick={(e) => toggle(commission.id, e)}
+                              className={`custom-checkbox ${allSelected ? 'checked' : ''}`} 
+                              onClick={(e) => toggleCreator(group, e)}
                             >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </div>
                           )}
-                          <div className="row-info">
-                            <div className="row-order">{commission.orderNumber ? `Order ${commission.orderNumber}` : '—'}</div>
-                            <div className="row-meta">
-                              {commission.createdAt ? new Date(commission.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
-                            </div>
-                            
-                            {status === "PAID" && commission.payoutId && (
-                              <div className="row-meta" style={{ color: 'var(--blue-600)', marginTop: '2px', fontWeight: '500' }}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', marginRight: '4px', verticalAlign: '-2px' }}><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M12 12h.01"></path><path d="M17 12h.01"></path><path d="M7 12h.01"></path></svg>
-                                Payout {commission.payoutId}
-                              </div>
-                            )}
-
-                            {commission.rejectionReason && (
-                              <div className="row-meta" style={{ color: '#9D174D', marginTop: '2px' }}>
-                                Reason: {commission.rejectionReason}
-                              </div>
-                            )}
+                          <div className="creator-info">
+                            <h3>{group.name}</h3>
+                            <p>{group.commissions.length} {status.toLowerCase()} commission{group.commissions.length === 1 ? '' : 's'} · {group.programName} · <code>{group.referralCode}</code></p>
                           </div>
                         </div>
-
-                        <div className="row-right">
-                          <div className="row-amount-stack">
-                            <div className="row-amount" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {commission.adjusted && (
-                                <span style={{ color: 'var(--muted)', textDecoration: 'line-through', fontSize: '12px', fontWeight: '500' }}>
-                                  {formatMoney(commission.originalAmount)}
-                                </span>
-                              )}
-                              {formatMoney(commission.amount)}
-                              {commission.adjusted && (
-                                <div title="Commission was adjusted (e.g., partial refund)" style={{ display: 'flex', color: 'var(--amber-600)' }}>
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className={`status-badge badge-${commission.status.toLowerCase()}`}>
-                              {commission.status === "APPROVED" ? "Ready for payout" : commission.status.charAt(0) + commission.status.slice(1).toLowerCase()}
-                            </div>
-                          </div>
+                        <div className="creator-header-right">
+                          <div className="creator-total">{formatMoney(group.total)}</div>
                           
-                          {(status === "PENDING" || status === "APPROVED") && !commission.payoutId && (
+                          {status === "PENDING" && (
                             <button 
-                              className="btn btn-reject" 
+                              className="btn-dark" 
                               disabled={isBusy}
-                              onClick={(e) => { e.stopPropagation(); setRejecting([commission.id]); }}
+                              onClick={(e) => { e.stopPropagation(); run("approve", selectedInGroup.length > 0 ? selectedInGroup : ids); }}
                             >
-                              Reject
+                              {selectedInGroup.length > 0 && selectedInGroup.length < ids.length 
+                                ? `Approve ${selectedInGroup.length}` 
+                                : `Approve all`}
+                            </button>
+                          )}
+                          
+                          {status === "APPROVED" && (
+                            <button 
+                              className="btn-dark" 
+                              disabled={isBusy}
+                              onClick={(e) => { e.stopPropagation(); run("payout", selectedInGroup.length > 0 ? selectedInGroup : ids, { creatorId: group.creatorId }); }}
+                            >
+                              {selectedInGroup.length > 0 && selectedInGroup.length < ids.length 
+                                ? `Create payout (${selectedInGroup.length})` 
+                                : `Create payout (All)`}
                             </button>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                );
-              })
-            )}
+
+                      {!isCollapsed && group.commissions.map((commission) => (
+                        <div key={commission.id} className="commission-row" onClick={() => setDetailsCommission({ creator: group, commission })}>
+                          <div className="row-left">
+                            {(status === "PENDING" || status === "APPROVED") && (
+                              <div 
+                                className={`custom-checkbox ${selected.has(commission.id) ? 'checked' : ''}`} 
+                                onClick={(e) => toggle(commission.id, e)}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                              </div>
+                            )}
+                            <div className="row-info">
+                              <div className="row-order">{commission.orderNumber ? `Order ${commission.orderNumber}` : '—'}</div>
+                              <div className="row-meta">
+                                {commission.createdAt ? new Date(commission.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
+                              </div>
+                              
+                              {status === "PAID" && commission.payoutId && (
+                                <div className="row-meta" style={{ color: 'var(--green-text)', marginTop: '2px', fontWeight: '500' }}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', marginRight: '4px', verticalAlign: '-2px' }}><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M12 12h.01"></path><path d="M17 12h.01"></path><path d="M7 12h.01"></path></svg>
+                                  Payout {commission.payoutId}
+                                </div>
+                              )}
+
+                              {commission.rejectionReason && (
+                                <div className="row-meta" style={{ color: '#9D174D', marginTop: '2px' }}>
+                                  Reason: {commission.rejectionReason}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="row-right">
+                            <div className="row-amount-stack">
+                              <div className="row-amount" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {commission.adjusted && (
+                                  <span style={{ color: 'var(--muted)', textDecoration: 'line-through', fontSize: '12px', fontWeight: '500' }}>
+                                    {formatMoney(commission.originalAmount)}
+                                  </span>
+                                )}
+                                {formatMoney(commission.amount)}
+                                {commission.adjusted && (
+                                  <div title="Commission was adjusted (e.g., partial refund)" style={{ display: 'flex', color: 'var(--amber-600)' }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className={`status-badge badge-${commission.status.toLowerCase()}`}>
+                                {commission.status === "APPROVED" ? "Ready for payout" : commission.status.charAt(0) + commission.status.slice(1).toLowerCase()}
+                              </div>
+                            </div>
+                            
+                            {(status === "PENDING" || status === "APPROVED") && !commission.payoutId && (
+                              <button 
+                                className="btn-reject" 
+                                disabled={isBusy}
+                                onClick={(e) => { e.stopPropagation(); setRejecting([commission.id]); }}
+                              >
+                                Reject
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>
