@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edit program</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --blue-900:#1E3A8A;
+    --blue-800:#1D4ED8;
+    --blue-600:#2563EB;
+    --blue-tint:#EEF4FF;
+    --blue-tint-2:#DBEAFE;
+    --amber-600:#F59E0B;
+    --amber-400:#FFB648;
+    --amber-tint:#FFF6E5;
+    --amber-text:#92620A;
+    --ink:#161A25;
+    --muted:#6B7280;
+    --muted-2:#8A93A3;
+    --green-bg:#DEFBE8;
+    --green-text:#0F8A4B;
+    --border:#E4E8F0;
+    --border-soft:#EBEEF4;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ font-family:'Inter',system-ui,-apple-system,sans-serif; background:#F0F2F6; color:var(--ink); }
+  .page{ max-width:1280px; margin:0 auto; padding:24px 28px 70px; }
+
+  /* ===== top bar ===== */
+  .top-bar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+  .top-left{ display:flex; align-items:center; gap:14px; }
+  .back-btn{ width:36px; height:36px; border-radius:9px; border:1px solid var(--border); background:#fff; display:flex; align-items:center; justify-content:center; color:#374151; cursor:pointer; flex:none; }
+  .back-btn:hover{ border-color:#C7CFDC; }
+  .top-titles h1{ margin:0; font-size:20px; font-weight:800; letter-spacing:-.01em; }
+  .top-titles .sub{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .top-actions{ display:flex; gap:10px; }
+  .btn{ display:inline-flex; align-items:center; gap:7px; font-family:inherit; font-size:13.5px; font-weight:600; padding:10px 16px; border-radius:10px; cursor:pointer; border:1px solid var(--border); background:#fff; color:#374151; }
+  .btn:hover{ border-color:#C7CFDC; }
+  .btn.primary{ background:linear-gradient(135deg,var(--blue-600),var(--blue-900)); color:#fff; border:none; box-shadow:0 6px 14px -6px rgba(29,78,216,.5); }
+
+  /* ===== layout ===== */
+  .layout{ display:grid; grid-template-columns:1fr 336px; gap:20px; align-items:start; }
+  .main-col{ display:flex; flex-direction:column; gap:22px; }
+
+  .section-head{ margin-bottom:2px; }
+  .section-head h2{ margin:0 0 3px; font-size:15.5px; font-weight:700; }
+  .section-head p{ margin:0; font-size:13px; color:var(--muted); }
+  .section-stack{ display:flex; flex-direction:column; gap:14px; }
+
+  /* ===== generic card ===== */
+  .card{ background:#fff; border:1px solid var(--border-soft); border-radius:16px; padding:22px 24px; box-shadow:0 1px 2px rgba(20,30,60,.03); position:relative; }
+  .card-title-row{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .card-title-row h3{ margin:0; font-size:14.5px; font-weight:700; }
+  .card-desc{ margin:0 0 16px; font-size:13px; color:var(--muted); line-height:1.5; }
+
+  .pill{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px; }
+  .pill.active{ background:var(--green-bg); color:var(--green-text); }
+  .pill.inactive{ background:var(--amber-tint); color:var(--amber-text); border:1px solid #FBE3B0; }
+  .pill.pro{ display:inline-flex; align-items:center; gap:4px; background:linear-gradient(135deg,#FFE1A0,var(--amber-400)); color:#5A3400; }
+
+  /* ===== form field styles ===== */
+  .field-row{ display:grid; gap:14px; }
+  .field-row.two{ grid-template-columns:1fr 220px; }
+  .field-row.three{ grid-template-columns:1fr 1fr; }
+  .field{ border:1px solid var(--border); border-radius:11px; padding:11px 14px; background:#fff; }
+  .field label{ display:block; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:5px; }
+  .field .val{ font-size:14px; color:var(--ink); font-weight:500; }
+  .field.select{ display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .field.select svg{ color:var(--muted-2); flex:none; }
+  .field.status{ display:flex; align-items:center; justify-content:space-between; }
+  .field textarea{ width:100%; border:none; outline:none; resize:vertical; font-family:inherit; font-size:13.5px; color:#374151; line-height:1.55; min-height:64px; padding:0; margin-top:2px; }
+  .field-hint{ font-size:12px; color:var(--muted-2); font-style:italic; margin-top:8px; }
+  .field .amount-suffix{ display:flex; align-items:center; justify-content:space-between; }
+  .field .amount-suffix .unit{ color:var(--muted-2); font-weight:600; font-size:13px; }
+
+  .toggle{ width:36px; height:20px; border-radius:100px; background:var(--blue-600); position:relative; flex:none; cursor:pointer; }
+  .toggle::after{ content:""; position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; background:#fff; transition:right .15s ease; }
+  .toggle.off{ background:#D7DCE5; }
+  .toggle.off::after{ right:18px; }
+  .toggle.locked{ background:#E7EAF1; cursor:not-allowed; }
+  .toggle.locked::after{ right:18px; background:#fff; }
+
+  .card-cta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+
+  /* ===== advanced commission rows ===== */
+  .adv-row{ border:1px solid var(--border); border-radius:12px; padding:14px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .adv-row + .adv-row{ margin-top:10px; }
+  .adv-row-left{ flex:1; }
+  .adv-row-title{ display:flex; align-items:center; gap:7px; font-size:13.5px; font-weight:700; margin-bottom:4px; }
+  .info-dot{ color:var(--muted-2); cursor:help; flex:none; }
+  .adv-row-desc{ font-size:12.5px; color:var(--muted); line-height:1.5; max-width:52ch; }
+  .adv-row-right{ display:flex; align-items:center; gap:10px; flex:none; }
+
+  /* ===== info-note rows (self-referral etc.) ===== */
+  .note-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .note-row-left{ flex:1; }
+  .note-title{ display:flex; align-items:center; gap:7px; font-size:13.5px; font-weight:700; margin-bottom:4px; }
+  .note-desc{ font-size:12.5px; color:var(--muted); line-height:1.5; max-width:54ch; }
+
+  /* ===== sidebar ===== */
+  .sidebar{ display:flex; flex-direction:column; gap:16px; position:sticky; top:20px; }
+  .side-card{ background:#fff; border:1px solid var(--border-soft); border-radius:16px; padding:20px 22px; box-shadow:0 1px 2px rgba(20,30,60,.03); }
+  .side-card h3{ margin:0 0 4px; font-size:14.5px; font-weight:700; }
+
+  .summary-name-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .summary-name{ font-size:14px; font-weight:700; }
+  .summary-sub{ font-size:12px; color:var(--muted); margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+  .summary-sub svg{ color:var(--blue-600); flex:none; }
+
+  .summary-block-title{ font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:9px; }
+  .summary-list{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; }
+  .summary-list li{ display:flex; align-items:flex-start; gap:8px; font-size:13px; color:#374151; line-height:1.45; }
+  .summary-list li::before{ content:""; width:5px;height:5px; border-radius:50%; background:var(--blue-600); margin-top:6px; flex:none; }
+
+  .tip-card{ display:flex; gap:11px; }
+  .tip-icon{ width:30px;height:30px; border-radius:9px; background:linear-gradient(135deg,#FFDE9E,var(--amber-400)); display:flex; align-items:center; justify-content:center; flex:none; }
+  .tip-body{ font-size:13px; color:#374151; line-height:1.5; }
+  .tip-link{ display:inline-block; margin-top:6px; font-size:12.5px; font-weight:700; color:var(--blue-600); text-decoration:none; }
+
+  .ai-card{ position:relative; border:1px solid transparent; background:
+      linear-gradient(#fff,#fff) padding-box,
+      linear-gradient(135deg, var(--blue-600), var(--amber-400)) border-box;
+    border-radius:16px; padding:20px 22px; }
+  .ai-head{ display:flex; align-items:center; gap:9px; margin-bottom:6px; }
+  .ai-icon{ width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--blue-600),var(--blue-900)); display:flex; align-items:center; justify-content:center; color:#fff; flex:none; }
+  .ai-head h3{ margin:0; font-size:14px; font-weight:700; }
+  .ai-badge{ font-size:10px; font-weight:800; letter-spacing:.04em; color:#fff; background:linear-gradient(135deg,var(--blue-600),var(--blue-900)); padding:2px 7px; border-radius:5px; margin-left:2px; }
+  .ai-body{ font-size:13px; color:#374151; line-height:1.5; margin-bottom:8px; }
+  .ai-link{ font-size:12.5px; font-weight:700; color:var(--blue-800); text-decoration:none; }
+
+  @media (max-width:980px){
+    .layout{ grid-template-columns:1fr; }
+    .sidebar{ position:static; }
+    .field-row.two, .field-row.three{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="top-bar">
+    <div class="top-left">
+      <div class="back-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </div>
+      <div class="top-titles">
+        <h1>Edit program</h1>
+        <div class="sub">Programs / Standard Affiliate Commission</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn">Discard</button>
+      <button class="btn primary">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Save changes
+      </button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="main-col">
+
+      <!-- General information -->
+      <div class="card">
+        <div class="card-title-row"><h3>General information</h3></div>
+        <div class="field-row two" style="margin-bottom:14px;">
+          <div class="field">
+            <label>Name</label>
+            <div class="val">Standard Affiliate Commission</div>
+          </div>
+          <div class="field status">
+            <div>
+              <label style="margin-bottom:2px;">Status</label>
+            </div>
+            <div class="toggle"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Description (optional)</label>
+          <textarea>You will earn a 13% commission on referral sales whenever a customer makes a purchase through your affiliate link or by using your coupon code.</textarea>
+        </div>
+        <div class="field-hint">This is displayed on the affiliate account and registration page.</div>
+      </div>
+
+      <!-- Commission rules -->
+      <div class="section-head">
+        <h2>Commission rules</h2>
+        <p>Configure how affiliates earn on referral sales.</p>
+      </div>
+      <div class="section-stack">
+
+        <div class="card">
+          <div class="card-title-row"><h3>Default commission</h3></div>
+          <p class="card-desc">Set a base commission rate that affiliates earn for every referral.</p>
+          <div class="field select" style="margin-bottom:14px;">
+            <div><label>Rule</label><div class="val">Simple (Fixed Commission)</div></div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 10l5 5 5-5"/></svg>
+          </div>
+          <div class="field-row two">
+            <div class="field select">
+              <div><label>Type</label><div class="val">Percent of sale</div></div>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 10l5 5 5-5"/></svg>
+            </div>
+            <div class="field">
+              <label>Amount</label>
+              <div class="amount-suffix"><span class="val">13.00</span><span class="unit">%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-cta-row">
+            <div>
+              <div class="card-title-row"><h3>Special product commission</h3><span class="pill inactive">Inactive</span></div>
+              <p class="card-desc" style="margin-bottom:0;">Set different commission rates when specific products are purchased. These override the default rate.</p>
+            </div>
+            <button class="btn">Set up</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title-row"><h3>Advanced commission</h3></div>
+          <p class="card-desc">Set different commission rates when specific conditions are met. These override the default rate for matching referrals.</p>
+
+          <div class="adv-row">
+            <div class="adv-row-left">
+              <div class="adv-row-title">New customer commission
+                <span class="info-dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+              </div>
+              <div class="adv-row-desc">Pay a different rate when the referred customer is purchasing from your store for the first time.</div>
+            </div>
+            <div class="adv-row-right"><span class="pill pro">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>PRO</span><div class="toggle locked"></div></div>
+          </div>
+
+          <div class="adv-row">
+            <div class="adv-row-left">
+              <div class="adv-row-title">Lifetime commissions
+                <span class="info-dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+              </div>
+              <div class="adv-row-desc">Keep paying commission on every future purchase by a customer this affiliate originally referred, not just their first order.</div>
+            </div>
+            <div class="adv-row-right"><span class="pill pro">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>PRO</span><div class="toggle locked"></div></div>
+          </div>
+
+          <div class="adv-row">
+            <div class="adv-row-left">
+              <div class="adv-row-title">Special coupon commission
+                <span class="info-dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+              </div>
+              <div class="adv-row-desc">Set a unique commission rate for orders placed with a specific coupon code, overriding the default rate.</div>
+            </div>
+            <div class="adv-row-right"><span class="pill pro">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>PRO</span><div class="toggle locked"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer incentives -->
+      <div class="section-head">
+        <h2>Customer incentives</h2>
+        <p>Reward customers when they shop through affiliate links.</p>
+      </div>
+      <div class="section-stack">
+        <div class="card">
+          <div class="card-cta-row">
+            <div>
+              <div class="card-title-row"><h3>Auto-discount for customers</h3><span class="pill inactive">Inactive</span><span class="pill pro">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>PRO</span></div>
+              <p class="card-desc" style="margin-bottom:0;">Automatically apply a discount at checkout when customers arrive through an affiliate link, to drive conversions.</p>
+            </div>
+            <button class="btn">Set up</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commission calculation -->
+      <div class="section-head">
+        <h2>Commission calculation</h2>
+        <p>Customize how products, shipping, and taxes impact commission calculations.</p>
+      </div>
+      <div class="section-stack">
+
+        <div class="card">
+          <div class="card-title-row"><h3>Excluded products/collections</h3><span class="pill pro">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>PRO</span></div>
+          <p class="card-desc">Select products or collections to exclude from commission calculations — useful for gift cards, subscriptions, or other non-commissionable items.</p>
+          <div class="field select">
+            <div><label>Apply to</label><div class="val" style="color:var(--muted-2); font-weight:400;">None selected</div></div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 10l5 5 5-5"/></svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title-row"><h3>Shipping, taxes and other fees</h3></div>
+          <p class="card-desc" style="margin-bottom:14px;">Choose which order components count toward the commissionable amount.</p>
+
+          <div class="adv-row"><div class="adv-row-left"><div class="adv-row-title" style="margin-bottom:0;">Exclude product tax</div></div><div class="toggle"></div></div>
+          <div class="adv-row"><div class="adv-row-left"><div class="adv-row-title" style="margin-bottom:0;">Exclude shipping</div></div><div class="toggle"></div></div>
+          <div class="adv-row"><div class="adv-row-left"><div class="adv-row-title" style="margin-bottom:0;">Exclude shipping tax</div></div><div class="toggle"></div></div>
+          <div class="adv-row"><div class="adv-row-left"><div class="adv-row-title" style="margin-bottom:0;">Exclude tip</div></div><div class="toggle"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title-row"><h3>Self-referrals</h3></div>
+          <div class="note-row">
+            <div class="note-row-left">
+              <div class="note-title">Exclude self-referrals
+                <span class="info-dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg></span>
+              </div>
+              <div class="note-desc">When enabled, affiliates won't earn commission on purchases made using their own referral link or coupon — helps prevent self-referral abuse.</div>
+            </div>
+            <div class="toggle off"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== sidebar ===== -->
+    <div class="sidebar">
+
+      <div class="side-card">
+        <div class="summary-name-row">
+          <span class="summary-name">Standard Affiliate Commission</span>
+          <span class="pill active">Active</span>
+        </div>
+        <div class="summary-sub">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+          1 affiliate using this program
+        </div>
+        <div class="summary-block-title">Commission structure</div>
+        <ul class="summary-list">
+          <li><b>13.00%</b> commission on qualifying sales</li>
+          <li>Excludes product tax, shipping, shipping tax, and tip</li>
+          <li>Self-referrals currently <b>allowed</b></li>
+        </ul>
+      </div>
+
+      <div class="side-card tip-card">
+        <div class="tip-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7A4B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M15.09 14c.3-.53.66-.94 1.14-1.42A6 6 0 1 0 6.9 9.55"/><path d="M12 4a6 6 0 0 0-4.1 10.36c.48.48.84.89 1.14 1.42"/></svg>
+        </div>
+        <div class="tip-body">
+          Applying auto-discount for customers helps reduce checkout abandonment and can boost affiliate conversion rate by <b>up to 18%</b>.
+          <a class="tip-link" href="#">Enable now →</a>
+        </div>
+      </div>
+
+      <div class="ai-card">
+        <div class="ai-head">
+          <div class="ai-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/></svg>
+          </div>
+          <h3>Smart program setup <span class="ai-badge">AI</span></h3>
+        </div>
+        <div class="ai-body">Launch with confidence. Let AI suggest commission rules tailored to your industry and product catalog.</div>
+        <a class="ai-link" href="#">Try it now →</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

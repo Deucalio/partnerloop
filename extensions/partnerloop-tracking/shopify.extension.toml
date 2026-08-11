@@ -1,0 +1,7 @@
+api_version = "2026-10"
+
+[[extensions]]
+type = "theme"
+name = "PartnerLoop tracking"
+handle = "partnerloop-tracking"
+uid = "dbcb03e7-0ae8-7ccb-88fc-9f05706c50d359265ff4"

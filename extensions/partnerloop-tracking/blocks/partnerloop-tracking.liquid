@@ -1,0 +1,30 @@
+{% comment %}
+  PartnerLoop attribution.
+
+  Captures ?ref=<code> on any storefront page, stores it in a first-party cookie
+  for the attribution window, reports the click through the app proxy, and
+  copies the code onto the cart so it survives into the resulting order.
+
+  This is an app embed block: it is OFF until the merchant enables it under
+  Theme editor → App embeds. The app's dashboard warns when that hasn't happened.
+
+  The block filename matters — it appears in the theme's settings_data.json as
+  ".../blocks/partnerloop-tracking/<uuid>", which is how the app detects whether
+  this embed is switched on. Renaming this file breaks that detection.
+{% endcomment %}
+
+<script
+  src="{{ 'partnerloop-tracking.js' | asset_url }}"
+  data-partnerloop-tracking
+  data-proxy-base="/apps/partnerloop"
+  data-window-days="30"
+  defer
+></script>
+
+{% schema %}
+{
+  "name": "PartnerLoop tracking",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}

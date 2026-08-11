@@ -34,9 +34,9 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const formData = await request.formData();
-  
+
   const industry = formData.get("industry");
   const businessDescription = formData.get("businessDescription") || "";
   const commissionType = formData.get("commissionType");
@@ -47,11 +47,22 @@ export const action = async ({ request }) => {
     return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
   }
 
+  // Mirrored onto the Store so the creators-panel can format commission amounts
+  // without Admin API access of its own.
+  const shopResponse = await admin.graphql(`#graphql
+    query {
+      shop {
+        currencyCode
+      }
+    }`);
+  const shopData = await shopResponse.json();
+  const currencyCode = shopData.data?.shop?.currencyCode || "USD";
+
   await prisma.$transaction(async (tx) => {
-    const store = await tx.store.upsert({
+    await tx.store.upsert({
       where: { shop: session.shop },
-      update: { onboardingCompleted: true },
-      create: { shop: session.shop, onboardingCompleted: true },
+      update: { onboardingCompleted: true, currencyCode },
+      create: { shop: session.shop, onboardingCompleted: true, currencyCode },
     });
 
     await tx.businessInfo.upsert({

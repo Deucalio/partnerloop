@@ -34,6 +34,9 @@ model Session {
 model Store {
   shop                String   @id
   onboardingCompleted Boolean  @default(false)
+  // Mirrored from the Shopify Admin API so the creators-panel can format money
+  // without holding Admin API credentials of its own.
+  currencyCode        String   @default("USD")
   programs            Program[]
   businessInfo        BusinessInfo?
   createdAt           DateTime @default(now())
@@ -49,8 +52,11 @@ model Program {
   isDefault       Boolean  @default(false)
   
   commissionConfig CommissionConfig?
+  productRules     ProductCommissionRule[]
+  customerRules    CustomerCommissionRule[]
   trackingConfig   TrackingConfig?
   creators         Creator[]
+  clicks           Click[]
 
   store           Store    @relation(fields: [shopId], references: [shop], onDelete: Cascade)
   createdAt       DateTime @default(now())
@@ -62,11 +68,20 @@ enum ProgramStatus {
   INACTIVE
 }
 
+/// The program's default rule — the last step in the precedence chain.
 model CommissionConfig {
   id        String   @id @default(uuid())
   programId String   @unique
   type      CommissionType
   amount    Float
+  /// Orders whose qualifying subtotal falls below this earn nothing at all.
+  /// Evaluated against the whole order before any rule is applied, so it is a
+  /// gate rather than another rule. Null means no minimum.
+  minimumOrderValue Float?
+  /// Days to hold a commission before it should be approved, giving refunds and
+  /// cancellations time to surface. Sets `Commission.eligibleAt` at creation.
+  /// Recorded and shown, not enforced in V1.
+  holdDays          Int?
 
   program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
 }
@@ -75,6 +90,60 @@ enum CommissionType {
   PERCENTAGE
   FIXED_PER_ORDER
   FIXED_PER_ITEM
+}
+
+/// A per-product override: "Product A earns 20%, everything else the default".
+///
+/// Only PERCENTAGE and FIXED_PER_ITEM are allowed here, enforced in the service
+/// layer. Both decompose cleanly onto a single line item, whereas
+/// FIXED_PER_ORDER is a whole-order amount — "pay £10 if Product A is present"
+/// has no sensible answer when two such products are in the same order, so that
+/// rule type stays program-level only.
+model ProductCommissionRule {
+  id           String   @id @default(uuid())
+  programId    String
+  /// Shopify product GID, e.g. gid://shopify/Product/123. Kept as the numeric id
+  /// too, because webhook payloads are REST-shaped and carry `product_id`.
+  productId    String
+  /// Denormalised for the merchant UI so listing rules needs no Admin API call.
+  productTitle String
+  type         CommissionType
+  amount       Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  program      Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  /// One rule per product per program; re-adding a product edits its rule.
+  @@unique([programId, productId])
+  @@index([programId])
+}
+
+enum CustomerType {
+  NEW
+  RETURNING
+}
+
+/// "New customers earn the creator 15%, returning ones 5%."
+///
+/// Sits between product overrides and the program default: it *replaces* the
+/// default for lines that no product rule claimed, so it supports the same three
+/// rule types the default does. Applied only when the customer's history is
+/// actually known — a guest checkout falls through to the program default rather
+/// than being guessed at.
+model CustomerCommissionRule {
+  id           String   @id @default(uuid())
+  programId    String
+  customerType CustomerType
+  type         CommissionType
+  amount       Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  program      Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, customerType])
+  @@index([programId])
 }
 
 model TrackingConfig {
@@ -95,20 +164,66 @@ model BusinessInfo {
   store               Store    @relation(fields: [shopId], references: [shop], onDelete: Cascade)
 }
 
-model Creator {
+/// One human identity, independent of any program. Credentials live here so a
+/// creator has a single login even when they promote several merchants — email
+/// is unique globally, which is what makes sign-in unambiguous.
+model CreatorAccount {
   id              String   @id @default(uuid())
-  programId       String
+  email           String   @unique
+  passwordHash    String
   firstName       String
   lastName        String
-  email           String
-  status          CreatorStatus @default(PENDING)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  memberships     Creator[]
+}
+
+/// A creator's membership of one program. One account can hold several, each
+/// with its own referral code, approval status and earnings.
+model Creator {
+  id              String   @id @default(uuid())
+  accountId       String
+  programId       String
+  // Public tracking slug used in share links (?ref=<code>) and as the creator's
+  // coupon code. Per-membership, so earnings never cross between merchants.
+  referralCode    String   @unique
+  status          CreatorStatus @default(PENDING)
+  approvedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  account         CreatorAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
   program         Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
   referrals       Referral[]
   commissions     Commission[]
   payouts         Payout[]
+  clicks          Click[]
+
+  // An account joins any given program at most once.
+  @@unique([accountId, programId])
+}
+
+/// A storefront visit carrying a creator's ?ref= code.
+///
+/// Recorded by the theme app embed through the App Proxy. `visitorId` is an
+/// anonymous id minted in the browser — without it one shopper refreshing five
+/// times would read as five clicks and wreck the conversion rate.
+model Click {
+  id           String   @id @default(uuid())
+  creatorId    String
+  programId    String
+  visitorId    String
+  landingPage  String
+  referrer     String?
+  createdAt    DateTime @default(now())
+
+  creator      Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  program      Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId, createdAt])
+  @@index([programId, createdAt])
+  @@index([visitorId, creatorId, createdAt])
 }
 
 enum CreatorStatus {
@@ -121,7 +236,12 @@ enum CreatorStatus {
 model Referral {
   id              String   @id @default(uuid())
   creatorId       String
-  orderId         String?  // Shopify order ID
+  // Shopify order GID. Unique because webhooks are delivered at-least-once —
+  // without this a redelivery would create a second referral and a second
+  // commission for the same order, and the creator would be paid twice.
+  // Nullable for referrals not sourced from an order; Postgres allows many NULLs
+  // under a unique index.
+  orderId         String?  @unique
   orderNumber     String?  // Shopify order number (e.g. #1042)
   orderAmount     Float
   status          ReferralStatus @default(PENDING)
@@ -138,19 +258,68 @@ enum ReferralStatus {
   REJECTED
 }
 
+/// What a creator is *owed* for a referral — deliberately separate from whether
+/// the referral happened at all.
+///
+/// A rejected commission does not undo the `Referral`: "Sarah generated this
+/// order" stays true even when "Sarah should be paid for it" becomes false, e.g.
+/// after a refund or a self-referral. Collapsing the two would rewrite
+/// attribution history and make a creator's past work disappear from reporting.
 model Commission {
   id              String   @id @default(uuid())
   creatorId       String
   referralId      String   @unique
   payoutId        String?
+  /// What the creator is currently owed — or, once PAID, what they were actually
+  /// paid. Refunds move this while the commission is still unpaid; after payment
+  /// it is frozen, because money that has left cannot be un-sent.
   amount          Float
+  /// The entitlement at attribution time, never rewritten. `amount` plus the
+  /// adjustment ledger has to reconcile back to this, which is what lets the app
+  /// explain "Rs 78 originally, −Rs 26 refunded, Rs 52 now" instead of silently
+  /// showing a different number than the merchant remembers approving.
+  originalAmount  Float?
   status          CommissionStatus @default(PENDING)
+  /// Required when rejecting; the merchant has to say why.
+  rejectionReason String?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  /// Earliest date this should be approved, so refunds have time to surface.
+  /// Derived from the program's hold period when the commission is created.
+  /// Surfaced in the UI but **not enforced** in V1 — the field exists so adding
+  /// enforcement later is a check, not a migration.
+  eligibleAt      DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   creator         Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   referral        Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
   payout          Payout?  @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  adjustments     CommissionAdjustment[]
+}
+
+/// An append-only ledger of everything that changed a commission after it was
+/// created — refunds, cancellations, manual corrections.
+///
+/// Deliberately append-only: the original figure stays intact and each change is
+/// explainable, rather than the commission quietly showing a different number
+/// than the merchant approved. Deltas are signed, so a refund is negative.
+model CommissionAdjustment {
+  id           String   @id @default(uuid())
+  commissionId String
+  /// Signed change to the entitlement. Negative for refunds and cancellations.
+  amount       Float
+  reason       String
+  /// The Shopify event that caused it — a refund id, or the order id for a
+  /// cancellation. Unique per commission so a redelivered webhook is a no-op
+  /// rather than a second deduction.
+  sourceId     String?
+  createdAt    DateTime @default(now())
+
+  commission   Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  @@unique([commissionId, sourceId])
+  @@index([commissionId])
 }
 
 enum CommissionStatus {
@@ -160,11 +329,22 @@ enum CommissionStatus {
   REJECTED
 }
 
+/// A manual payment to a creator covering a batch of approved commissions.
+///
+/// Exists to answer "did I actually pay Sarah for this?" six months later, so it
+/// records how and when, not just how much.
 model Payout {
   id              String   @id @default(uuid())
+  /// Human-readable sequence for referring to a payout: PL-0001.
+  number          Int      @unique @default(autoincrement())
   creatorId       String
   amount          Float
   status          PayoutStatus @default(PENDING)
+  /// Free text: "Bank transfer", "Wise", "Cash". No payment provider in V1.
+  method          String?
+  /// The merchant's own transaction reference — the actual audit trail.
+  reference       String?
+  note            String?
   paidAt          DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
