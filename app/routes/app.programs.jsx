@@ -1,5 +1,5 @@
 import { Page, Modal, Button, Tooltip } from "@shopify/polaris";
-import { Form, useLoaderData, useSubmit, useNavigate } from "react-router";
+import { Form, useLoaderData, useSubmit, useNavigate, useNavigation } from "react-router";
 import { useState, useCallback } from "react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -54,6 +54,20 @@ export const action = async ({ request }) => {
     await prisma.program.delete({
       where: { id: programId, shopId: session.shop }
     });
+  } else if (actionType === "setDefault") {
+    // Exactly one default per shop: clearing the others and setting this one has
+    // to happen together, or a failure could leave a shop with none or two.
+    const program = await prisma.program.findFirst({
+      where: { id: programId, shopId: session.shop },
+      select: { id: true },
+    });
+
+    if (program) {
+      await prisma.$transaction([
+        prisma.program.updateMany({ where: { shopId: session.shop }, data: { isDefault: false } }),
+        prisma.program.update({ where: { id: program.id }, data: { isDefault: true } }),
+      ]);
+    }
   } else if (actionType === "toggle") {
     const program = await prisma.program.findUnique({ where: { id: programId } });
     if (program && program.shopId === session.shop) {
@@ -71,6 +85,8 @@ export default function Programs() {
   const { appHandle, shop, programs } = useLoaderData();
   const submit = useSubmit();
   const navigate = useNavigate();
+  const navigation = useNavigation();
+  const isBusy = navigation.state !== "idle";
   const [modalActive, setModalActive] = useState(false);
   const toggleModal = useCallback(() => setModalActive((active) => !active), []);
 
@@ -245,6 +261,9 @@ export default function Programs() {
 
         .programs-page .default-pill{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:var(--blue-800); background:var(--blue-tint); padding:4px 10px; border-radius:100px; }
         .programs-page .default-pill svg{ flex:none; }
+        .programs-page .set-default-btn{ font-family:inherit; font-size:12px; font-weight:600; color:var(--muted); background:none; border:1px dashed var(--border); padding:4px 10px; border-radius:100px; cursor:pointer; transition:all .15s; }
+        .programs-page .set-default-btn:hover{ color:var(--blue-800); border-color:var(--blue-tint-2); background:var(--blue-tint); }
+        .programs-page .set-default-btn[disabled]{ opacity:.55; cursor:progress; }
 
         .programs-page .actions-cell{ display:flex; align-items:center; gap:14px; }
         .programs-page .toggle{ width:34px; height:19px; border-radius:100px; background:var(--blue-600); position:relative; flex:none; cursor: pointer; transition: background-color 0.2s ease; }
@@ -386,7 +405,15 @@ export default function Programs() {
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
                           Default
                         </span>
-                      ) : null}
+                      ) : (
+                        <button
+                          className="set-default-btn"
+                          disabled={isBusy}
+                          onClick={() => submit({ actionType: "setDefault", programId: prog.id }, { method: "post" })}
+                        >
+                          {isBusy ? "Working…" : "Set as default"}
+                        </button>
+                      )}
                     </td>
                     <td>{prog.referrals}</td>
                     <td>

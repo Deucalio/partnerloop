@@ -19,6 +19,8 @@ import {
 import { authenticate } from "../shopify.server";
 import { getDashboardData, syncStoreCurrency } from "../services/dashboard.server";
 import { getEmbedStatus } from "../services/embed-status.server";
+import { getAttentionItems, syncEmbedStatus } from "../services/attention.server";
+import { AttentionCard } from "../components/AttentionCard";
 import { PERIODS } from "../periods";
 import { programSignupUrl } from "../services/links.server";
 import { TitleBar } from "@shopify/app-bridge-react";
@@ -55,9 +57,12 @@ export const loader = async ({ request }) => {
   // Clicks and order attribution both depend on the storefront app embed, which
   // merchants have to switch on themselves.
   const embedStatus = await getEmbedStatus(admin);
+  await syncEmbedStatus(session.shop, embedStatus.state);
+  const attention = await getAttentionItems(session.shop);
   const storeHandle = session.shop.split(".")[0];
 
   return {
+    attention,
     embedStatus,
     themeEditorUrl: embedStatus.themeId
       ? `https://admin.shopify.com/store/${storeHandle}/themes/${embedStatus.themeId}/editor?context=apps`
@@ -85,6 +90,7 @@ export default function Dashboard() {
     signupUrl,
     embedStatus,
     themeEditorUrl,
+    attention,
   } = useLoaderData();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -224,21 +230,6 @@ export default function Dashboard() {
               </Text>
             </BlockStack>
           </Banner>
-        )}
-
-        {/* Action items */}
-        {dashboardData.actionItems.length > 0 && (
-          <Card>
-            <BlockStack gap="300">
-              <Text variant="headingMd" as="h2">Needs your attention</Text>
-              {dashboardData.actionItems.map((item) => (
-                <InlineStack key={item.id} align="space-between" blockAlign="center" gap="400">
-                  <Text>{item.text}</Text>
-                  <Button onClick={() => navigate(item.url)}>{item.action}</Button>
-                </InlineStack>
-              ))}
-            </BlockStack>
-          </Card>
         )}
 
         {/* Creator Signup Link */}
@@ -544,6 +535,8 @@ export default function Dashboard() {
 
           <Layout.Section variant="oneThird">
             <BlockStack gap="400">
+              <AttentionCard items={attention.items} />
+
               {/* Program Health */}
               <Card>
                 <BlockStack gap="400">

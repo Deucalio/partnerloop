@@ -241,24 +241,6 @@ export async function getDashboardData({ shop, period = "30d", programId = "all"
 
   const pendingApproval = countByStatus.PENDING ?? 0;
   const readyToPay = commissionByStatus.APPROVED ?? 0;
-  const actionItems = [];
-  if (pendingApproval > 0) {
-    actionItems.push({
-      id: "pending-creators",
-      text: `${pendingApproval} creator${pendingApproval === 1 ? " is" : "s are"} waiting for approval.`,
-      action: "Review creators",
-      url: "/app/creators?status=PENDING",
-    });
-  }
-  if (readyToPay > 0) {
-    actionItems.push({
-      id: "ready-payouts",
-      text: `${readyToPay.toFixed(2)} in commissions are approved and ready to be paid.`,
-      action: "Review creators",
-      url: "/app/creators",
-    });
-  }
-
   const defaultProgram = allPrograms.find((p) => p.isDefault) ?? allPrograms[0] ?? null;
 
   return {
@@ -292,7 +274,6 @@ export async function getDashboardData({ shop, period = "30d", programId = "all"
       paid: commissionByStatus.PAID ?? 0,
       rejected: commissionByStatus.REJECTED ?? 0,
     },
-    actionItems,
     topCreators,
     recentActivity: buildActivityFeed({ recentCreators, recentReferrals }),
   };
@@ -404,7 +385,6 @@ function emptyDashboard({ store, allPrograms, start, end }) {
       couponTracking: false,
     },
     commissions: { pending: 0, approved: 0, paid: 0, rejected: 0 },
-    actionItems: [],
     topCreators: [],
     recentActivity: [],
     storeShop: store.shop,

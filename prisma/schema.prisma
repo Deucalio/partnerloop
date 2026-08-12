@@ -37,6 +37,10 @@ model Store {
   // Mirrored from the Shopify Admin API so the creators-panel can format money
   // without holding Admin API credentials of its own.
   currencyCode        String   @default("USD")
+  /// Last known state of the storefront tracking embed: "active" | "inactive" |
+  /// "unknown". Mirrored by the dashboard so the attention centre can flag a
+  /// broken setup on every page without paying for a theme query each time.
+  embedStatus         String?
   programs            Program[]
   businessInfo        BusinessInfo?
   createdAt           DateTime @default(now())

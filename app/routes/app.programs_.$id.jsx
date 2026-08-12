@@ -1,4 +1,4 @@
-import { redirect, useLoaderData, useSubmit, useNavigate } from "react-router";
+import { redirect, useLoaderData, useSubmit, useNavigate, useNavigation } from "react-router";
 import { useState, useCallback } from "react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
@@ -182,6 +182,10 @@ export default function EditProgram() {
   const { program, isNew } = useLoaderData();
   const navigate = useNavigate();
   const submit = useSubmit();
+  const navigation = useNavigation();
+  // Stays true through the redirect that follows a save, so the button cannot be
+  // pressed twice while the action is still running.
+  const isSaving = navigation.state !== "idle";
 
   const [name, setName] = useState(program.name);
   const [description, setDescription] = useState(program.description || "");
@@ -386,6 +390,10 @@ export default function EditProgram() {
 
         /* ===== sidebar ===== */
         .programs-page .sidebar{ display:flex; flex-direction:column; gap:16px; position:sticky; top:20px; }
+        /* The form is long; without this the only Save button scrolls out of
+           reach and the page looks like it has no way to commit changes. */
+        .programs-page .top-bar{ position:sticky; top:0; z-index:20; background:#F0F2F6; padding-top:6px; padding-bottom:12px; }
+        .programs-page .btn[disabled]{ opacity:.6; cursor:progress; }
         .programs-page .side-card{ background:#fff; border:1px solid var(--border-soft); border-radius:16px; padding:20px 22px; box-shadow:0 1px 2px rgba(20,30,60,.03); }
         .programs-page .side-card h3{ margin:0 0 4px; font-size:14.5px; font-weight:700; }
 
@@ -435,10 +443,18 @@ export default function EditProgram() {
               </div>
             </div>
             <div className="top-actions">
-              <button className="btn" onClick={handleDiscard}>Discard</button>
-              <button className="btn primary" onClick={handleSave}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                Save changes
+              <button className="btn" onClick={handleDiscard} disabled={isSaving}>Discard</button>
+              <button className="btn primary" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                    <path d="M12 3a9 9 0 1 0 9 9">
+                      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" />
+                    </path>
+                  </svg>
+                ) : (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                )}
+                {isSaving ? 'Saving…' : 'Save changes'}
               </button>
             </div>
           </div>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commission Dashboard Illustration</title>
+<style>
+    /* Illustration Container */
+    .saas-illustration-container {
+        width: 100%;
+        height: 420px;
+        border-radius: 24px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #347FF0 0%, #2859C8 50%, #213E92 100%);
+        position: relative;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        box-sizing: border-box;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .saas-illustration-container * {
+        box-sizing: border-box;
+    }
+
+    /* Decorative Background Elements */
+    .bg-dot-pattern {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px);
+        background-size: 24px 24px;
+        -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 90%);
+        mask-image: radial-gradient(circle at center, black 20%, transparent 90%);
+        z-index: 1;
+    }
+
+    .bg-glow-orb {
+        position: absolute;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(96, 165, 250, 0.35) 0%, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-40%, -50%);
+        border-radius: 50%;
+        z-index: 1;
+        filter: blur(20px);
+    }
+
+    .bg-curves {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    /* Floating Animations */
+    @keyframes floatY1 { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
+    @keyframes floatY2 { 0% { transform: translateY(0px); } 100% { transform: translateY(-12px); } }
+    @keyframes floatY3 { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
+    @keyframes floatY4 { 0% { transform: translateY(0px); } 100% { transform: translateY(-14px); } }
+    
+    @keyframes floatIcon1 { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(5px, -15px) rotate(15deg); } }
+    @keyframes floatIcon2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-10px, -10px) scale(1.1); } }
+
+    /* Card Positioning Wrappers (handles static position & rotation) */
+    .card-wrapper { position: absolute; z-index: 5; }
+    .wrap-creator { top: 8%; left: 4%; transform: rotate(-3deg); z-index: 6; }
+    .wrap-order { top: 48%; left: 12%; transform: rotate(2deg); z-index: 7; }
+    .wrap-commission { top: 16%; left: 40%; transform: rotate(-1.5deg); z-index: 10; }
+    .wrap-payout { top: 62%; left: 62%; transform: rotate(3.5deg); z-index: 8; }
+
+    /* Floating Inner Containers (handles the hover/bobbing animation) */
+    .float-inner { animation-direction: alternate; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+    .wrap-creator .float-inner { animation-name: floatY1; animation-duration: 5s; animation-delay: 0s; }
+    .wrap-order .float-inner { animation-name: floatY2; animation-duration: 6s; animation-delay: -1.5s; }
+    .wrap-commission .float-inner { animation-name: floatY3; animation-duration: 7s; animation-delay: -3s; }
+    .wrap-payout .float-inner { animation-name: floatY4; animation-duration: 4.5s; animation-delay: -1s; }
+
+    /* Card Base Styles */
+    .ui-card {
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 1);
+        box-shadow: 0 16px 32px -8px rgba(12, 28, 64, 0.3), 
+                    0 4px 12px -4px rgba(12, 28, 64, 0.15), 
+                    inset 0 1px 0px rgba(255, 255, 255, 1);
+        padding: 16px;
+        color: #111827;
+        width: 210px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Highlighted Main Card */
+    .ui-card.main-card {
+        width: 250px;
+        padding: 22px;
+        transform: scale(1.1);
+        box-shadow: 0 24px 48px -12px rgba(10, 20, 50, 0.4), 
+                    0 8px 24px -6px rgba(10, 20, 50, 0.2), 
+                    inset 0 1px 0px rgba(255, 255, 255, 1),
+                    0 0 0 1px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Smaller Payout Card */
+    .ui-card.small-card { width: 190px; }
+
+    /* Typography & Hierarchy */
+    .text-tiny { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; color: #6B7280; margin-bottom: 4px; }
+    .text-medium { font-size: 13px; font-weight: 600; color: #111827; line-height: 1.3; margin-bottom: 2px; }
+    .text-sub { font-size: 11px; font-weight: 500; color: #6B7280; line-height: 1.4; }
+    
+    .amount-large { font-size: 26px; font-weight: 800; color: #111827; margin: 8px 0 4px 0; letter-spacing: -0.5px; }
+    .amount-medium { font-size: 18px; font-weight: 700; color: #111827; margin-top: 6px; }
+
+    /* UI Layout Utilities */
+    .flex-row { display: flex; align-items: center; gap: 10px; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+    .divider { height: 1px; background: linear-gradient(90deg, rgba(229,231,235,0.2) 0%, rgba(229,231,235,1) 15%, rgba(229,231,235,1) 85%, rgba(229,231,235,0.2) 100%); margin: 14px 0; }
+    .mt-3 { margin-top: 12px; }
+
+    /* Specific UI Components */
+    .avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    }
+    
+    .thumbnail-row { display: flex; gap: 8px; margin: 10px 0; }
+    .thumb { 
+        width: 32px; height: 32px; border-radius: 6px; background: #F3F4F6; 
+        border: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Badges */
+    .badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 4px 10px; border-radius: 99px; font-size: 10px; font-weight: 700;
+        width: fit-content; line-height: 1.2;
+    }
+    .badge-green { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+    .badge-amber { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+    .badge-blue { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+    
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+
+    /* Floating Decor Elements */
+    .deco { position: absolute; z-index: 4; opacity: 0.8; animation: floatIcon1 8s ease-in-out infinite alternate; }
+    .deco-star { top: 22%; left: 75%; animation-name: floatIcon2; animation-duration: 6s; }
+    .deco-plus { top: 38%; left: 35%; opacity: 0.6; }
+    .deco-circle { top: 75%; left: 10%; width: 8px; height: 8px; border-radius: 50%; background: #FDE68A; animation-name: floatIcon2; }
+    .deco-diamond { top: 10%; left: 25%; opacity: 0.5; }
+
+    /* Responsiveness adjustments */
+    @media (max-width: 600px) {
+        .wrap-commission { left: 35%; }
+        .wrap-payout { left: 55%; top: 65%; }
+        .saas-illustration-container { height: 460px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="saas-illustration-container">
+    
+    <!-- Background Decor -->
+    <div class="bg-dot-pattern"></div>
+    <div class="bg-glow-orb"></div>
+    
+    <!-- Decorative organic background curves -->
+    <svg class="bg-curves" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice">
+        <path d="M -50 80 C 150 50, 200 300, 420 200 C 600 120, 700 350, 900 250" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2" stroke-dasharray="6 8" stroke-linecap="round"/>
+        <path d="M 0 300 C 250 350, 300 100, 500 150 C 650 180, 750 80, 900 100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" stroke-dasharray="4 6"/>
+    </svg>
+
+    <!-- Floating Decor Shapes -->
+    <svg class="deco deco-star" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L14.3162 9.13063H21.8155L15.7496 13.5387L18.0658 20.6694L12 16.2613L5.93417 20.6694L8.25036 13.5387L2.18446 9.13063H9.68378L12 2Z" fill="#FCD34D"/>
+    </svg>
+    <svg class="deco deco-plus" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 2V14M2 8H14" stroke="#60A5FA" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <svg class="deco deco-diamond" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="12" y="2" width="14.1421" height="14.1421" transform="rotate(45 12 2)" fill="#A78BFA"/>
+    </svg>
+    <div class="deco deco-circle"></div>
+
+    <!-- Creator Card -->
+    <div class="card-wrapper wrap-creator">
+        <div class="float-inner">
+            <div class="ui-card">
+                <div class="flex-row">
+                    <div class="avatar">SJ</div>
+                    <div>
+                        <div class="text-tiny">Creator</div>
+                        <div class="text-medium">Sarah Jenkins</div>
+                    </div>
+                </div>
+                <div class="text-sub mt-3">Creator Program · Referral</div>
+                <div class="badge badge-green mt-3">
+                    <div class="status-dot"></div> Active referral
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Card -->
+    <div class="card-wrapper wrap-order">
+        <div class="float-inner">
+            <div class="ui-card">
+                <div class="flex-between">
+                    <div class="text-tiny">Referred order</div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+                <div class="text-medium mt-3">Order #1762</div>
+                <div class="text-sub">Order value · PKR 786</div>
+                <div class="thumbnail-row">
+                    <div class="thumb">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </div>
+                    <div class="thumb">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </div>
+                </div>
+                <div class="badge badge-green mt-3">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Completed
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN Commission Card -->
+    <div class="card-wrapper wrap-commission">
+        <div class="float-inner">
+            <div class="ui-card main-card">
+                <div class="flex-between">
+                    <div class="text-tiny" style="color: #3B82F6;">Commission</div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.2"><path d="M12 2L15 8.5L22 9.5L17 14.5L18.5 21.5L12 18L5.5 21.5L7 14.5L2 9.5L9 8.5L12 2Z"></path></svg>
+                </div>
+                <div class="amount-large">PKR 102.17</div>
+                <div class="text-sub">13% of commissionable order value</div>
+                
+                <div class="divider"></div>
+                
+                <div class="flex-between">
+                    <div class="text-tiny" style="margin: 0;">Status:</div>
+                    <div class="badge badge-amber">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> 
+                        Pending review
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payout Card -->
+    <div class="card-wrapper wrap-payout">
+        <div class="float-inner">
+            <div class="ui-card small-card">
+                <div class="text-tiny">Next step</div>
+                <div class="text-medium">Creator payout</div>
+                <div class="amount-medium">PKR 180</div>
+                
+                <div class="badge badge-blue mt-3">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> 
+                    Ready after approval
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

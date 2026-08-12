@@ -16,15 +16,14 @@ import {
   rejectCommissions,
 } from "../services/commissions.server";
 import { getCreatorBalances } from "../services/refunds.server";
-import { COMMISSION_TABS } from "../commission-tabs";
+import { COMMISSION_TABS, COMMISSION_TAB_IDS } from "../commission-tabs";
 
 export const loader = async ({ request }) => {
   const { session, admin } = await authenticate.admin(request);
 
   const url = new URL(request.url);
-  const status = COMMISSION_TABS.some((tab) => tab.id === url.searchParams.get("status"))
-    ? url.searchParams.get("status")
-    : "PENDING";
+  const requested = url.searchParams.get("status");
+  const status = COMMISSION_TAB_IDS.includes(requested) ? requested : "PENDING";
 
   const response = await admin.graphql(`#graphql
     query { shop { currencyCode } }`);
@@ -104,8 +103,11 @@ export default function Commissions() {
 
   // Details Drawer/Modal State
   const [detailsCommission, setDetailsCommission] = useState(null);
+  const [showLifecycle, setShowLifecycle] = useState(false);
 
-  const isBusy = navigation.state === "submitting";
+  // "submitting" then "loading" — stay busy across both so a button cannot be
+  // pressed twice while the list is still refetching.
+  const isBusy = navigation.state !== "idle";
 
   // Show toast on success
   useEffect(() => {
@@ -292,8 +294,9 @@ export default function Commissions() {
           --blue-dark: #132f8c;
           --blue-50: #eef2fe;
           --navy: #1b2545;
-          --amber-bg: #FEF3C7;
-          --amber-text: #92400E;
+          --amber-bg: #FFFBEB;
+          --amber-text: #D97706;
+          --amber-border: #FDE68A;
           --green-bg: #e3f6ec;
           --green-text: #0e7a4d;
           --red-bg: #fdeceb;
@@ -312,34 +315,53 @@ export default function Commissions() {
         .commissions-page { font-family: 'Inter', system-ui, sans-serif; background: var(--page-bg); color: var(--ink); margin: -1rem; min-height: 100vh; }
         .commissions-page .page-inner { max-width: 1180px; margin: 0 auto; padding: 40px 32px 80px; }
 
-        /* HERO */
-        .hero { background:var(--white);border-radius:20px;box-shadow:var(--shadow-card); display:flex;overflow:hidden;margin-bottom:28px; }
-        .hero-art { position:relative;width:36%;min-width:320px; background:linear-gradient(135deg,#3a63ea 0%,var(--navy) 100%); overflow:hidden;padding:36px; }
-        .dots { position:absolute;top:-10px;right:-10px;width:170px;height:170px; background-image:radial-gradient(rgba(255,255,255,.4) 1.5px, transparent 1.5px); background-size:14px 14px;opacity:.5; }
-        .stack { position:relative;height:224px;margin-top:14px; }
-        .mini { position:absolute;width:196px;border-radius:14px;background:#fff; box-shadow:var(--shadow-mini);overflow:hidden; }
-        .mini .bar { background:var(--navy);color:#fff;font-size:12px;font-weight:700;padding:8px 12px; }
-        .mini .body { padding:12px; }
-        .mini .avatar { width:26px;height:26px;border-radius:50%;background:var(--blue-50);color:var(--blue); font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:8px; }
-        .mini .line { height:6px;border-radius:4px;background:#e8eaee;margin-bottom:6px; }
-        .mini .line.w60 { width:60%; }
-        .mini .line.w80 { width:80%; }
-        .mini .amount { font-size:17px;font-weight:800;color:var(--navy);margin:2px 0 8px; }
-        .mini .tag { display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700; padding:4px 9px;border-radius:999px;margin:0 12px 12px; }
-        .mini .tag.blue { background:var(--blue-50);color:var(--blue); }
-        .mini .tag.amber { background:var(--amber-bg);color:var(--amber-text); }
-        .icon-sm { width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.4; }
-        .mini.c1 { top:0;left:2px;transform:rotate(-8deg);z-index:1; }
-        .mini.c2 { top:38px;left:60px;transform:rotate(-2deg);z-index:2; }
-        .mini.c3 { top:86px;left:20px;transform:rotate(4deg);z-index:3; }
-        .hero-copy { flex:1;padding:36px 44px;display:flex;flex-direction:column;justify-content:center; }
-        .eyebrow { align-self:flex-start;background:var(--blue-50);color:var(--blue); font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;margin-bottom:14px; }
-        .hero-copy h2 { font-size:23px;font-weight:700;margin:0 0 8px; }
-        .hero-copy>p { color:var(--ink-secondary);font-size:14.5px;line-height:1.6;margin:0 0 16px;max-width:460px; }
-        .bullets { list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px; }
-        .bullets li { display:flex;gap:10px;font-size:14px;color:var(--ink-secondary);align-items:flex-start; }
-        .bullets .dot { width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:7px;flex:none; }
-        .bullets b { color:var(--ink); }
+        /* SAAS Illustration */
+        .saas-illustration-container { width: 100%; height: 380px; border-radius: 24px; overflow: hidden; background: linear-gradient(135deg, #347FF0 0%, #2859C8 50%, #213E92 100%); position: relative; margin-bottom: 32px; box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 12px 24px rgba(33,62,146,0.15); }
+        .bg-dot-pattern { position: absolute; inset: 0; background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px); background-size: 24px 24px; mask-image: radial-gradient(circle at center, black 20%, transparent 90%); -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 90%); z-index: 1; }
+        .bg-glow-orb { position: absolute; width: 350px; height: 350px; background: radial-gradient(circle, rgba(96, 165, 250, 0.35) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-40%, -50%); border-radius: 50%; z-index: 1; filter: blur(20px); }
+        .bg-curves { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        @keyframes floatY1 { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
+        @keyframes floatY2 { 0% { transform: translateY(0px); } 100% { transform: translateY(-12px); } }
+        @keyframes floatY3 { 0% { transform: translateY(0px); } 100% { transform: translateY(-8px); } }
+        @keyframes floatY4 { 0% { transform: translateY(0px); } 100% { transform: translateY(-14px); } }
+        @keyframes floatIcon1 { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(5px, -15px) rotate(15deg); } }
+        @keyframes floatIcon2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-10px, -10px) scale(1.1); } }
+        .card-wrapper { position: absolute; z-index: 5; }
+        .wrap-creator { top: 8%; left: 8%; transform: rotate(-3deg); z-index: 6; }
+        .wrap-order { top: 48%; left: 16%; transform: rotate(2deg); z-index: 7; }
+        .wrap-commission { top: 14%; left: 45%; transform: rotate(-1.5deg); z-index: 10; }
+        .wrap-payout { top: 58%; left: 66%; transform: rotate(3.5deg); z-index: 8; }
+        .float-inner { animation-direction: alternate; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+        .wrap-creator .float-inner { animation-name: floatY1; animation-duration: 5s; animation-delay: 0s; }
+        .wrap-order .float-inner { animation-name: floatY2; animation-duration: 6s; animation-delay: -1.5s; }
+        .wrap-commission .float-inner { animation-name: floatY3; animation-duration: 7s; animation-delay: -3s; }
+        .wrap-payout .float-inner { animation-name: floatY4; animation-duration: 4.5s; animation-delay: -1s; }
+        .ui-card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 16px 32px -8px rgba(12, 28, 64, 0.3), 0 4px 12px -4px rgba(12, 28, 64, 0.15), inset 0 1px 0px rgba(255, 255, 255, 1); padding: 16px; color: #111827; width: 210px; display: flex; flex-direction: column; }
+        .ui-card.main-card { width: 250px; padding: 22px; transform: scale(1.1); box-shadow: 0 24px 48px -12px rgba(10, 20, 50, 0.4), 0 8px 24px -6px rgba(10, 20, 50, 0.2), inset 0 1px 0px rgba(255, 255, 255, 1), 0 0 0 1px rgba(255, 255, 255, 0.5); }
+        .ui-card.small-card { width: 190px; }
+        .text-tiny { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; color: #6B7280; margin-bottom: 4px; }
+        .text-medium { font-size: 13px; font-weight: 600; color: #111827; line-height: 1.3; margin-bottom: 2px; }
+        .text-sub { font-size: 11px; font-weight: 500; color: #6B7280; line-height: 1.4; }
+        .amount-large { font-size: 26px; font-weight: 800; color: #111827; margin: 8px 0 4px 0; letter-spacing: -0.5px; }
+        .amount-medium { font-size: 18px; font-weight: 700; color: #111827; margin-top: 6px; }
+        .flex-row { display: flex; align-items: center; gap: 10px; }
+        .flex-between { display: flex; align-items: center; justify-content: space-between; }
+        .divider-line { height: 1px; background: linear-gradient(90deg, rgba(229,231,235,0.2) 0%, rgba(229,231,235,1) 15%, rgba(229,231,235,1) 85%, rgba(229,231,235,0.2) 100%); margin: 14px 0; border: none; }
+        .mt-3 { margin-top: 12px; }
+        .illus-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #1D4ED8); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3); }
+        .thumbnail-row { display: flex; gap: 8px; margin: 10px 0; }
+        .thumb { width: 40px; height: 40px; border-radius: 8px; background: #F3F4F6; border: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .illus-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 10px; font-weight: 700; width: fit-content; line-height: 1.2; }
+        .badge-green { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+        .badge-amber { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+        .badge-blue { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+        .deco { position: absolute; z-index: 4; opacity: 0.8; animation: floatIcon1 8s ease-in-out infinite alternate; }
+        .deco-star { top: 22%; left: 75%; animation-name: floatIcon2; animation-duration: 6s; }
+        .deco-plus { top: 38%; left: 35%; opacity: 0.6; }
+        .deco-circle { top: 75%; left: 10%; width: 8px; height: 8px; border-radius: 50%; background: #FDE68A; animation-name: floatIcon2; }
+        .deco-diamond { top: 10%; left: 25%; opacity: 0.5; }
 
         /* STAT CARDS */
         .stats-row { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px; }
@@ -410,6 +432,9 @@ export default function Commissions() {
         .commissions-page .btn-dark:hover { background: #202635; }
         .commissions-page .btn-reject { border-color: #FCCFE8; color: #BE185D; padding: 4px 10px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: #fff; border-radius: 8px; cursor: pointer; transition: all .15s;}
         .commissions-page .btn-reject:hover { background: #FDF2F8; border-color: #FBCFE8; }
+        .commissions-page .btn-approve { border: 1px solid var(--border); background: #fff; color: var(--ink); padding: 4px 10px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all .15s; }
+        .commissions-page .btn-approve:hover { background: #F7F9FC; border-color: #C7CFDC; }
+        .commissions-page button[disabled] { opacity: .55; cursor: progress; }
 
         /* Commission Rows */
         .commissions-page .commission-row { padding: 14px 10px 14px 44px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background .15s; background: #fafbfc; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
@@ -423,8 +448,8 @@ export default function Commissions() {
         .commissions-page .row-amount { font-size: 13px; font-weight: 700; }
 
         /* Badges */
-        .commissions-page .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: capitalize; }
-        .commissions-page .badge-pending { background: var(--amber-bg); color: var(--amber-text); }
+        .commissions-page .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: capitalize; border: 1px solid transparent; }
+        .commissions-page .badge-pending { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
         .commissions-page .badge-approved { background: var(--blue-50); color: var(--blue); }
         .commissions-page .badge-paid { background: var(--green-bg); color: var(--green-text); }
         .commissions-page .badge-rejected { background: var(--red-bg); color: var(--red-text); }
@@ -434,6 +459,114 @@ export default function Commissions() {
         .details-section-title { font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #E5E7EB; padding-bottom: 6px; margin-bottom: 12px; }
         .details-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: #374151; }
         .details-row.total { font-weight: 700; border-top: 1px solid #E5E7EB; padding-top: 8px; margin-top: 8px; color: var(--ink); }
+
+        /* Timeline & Lifecycle Modal (Ported from test.html) */
+        .commissions-page .btn-lifecycle {
+          background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+          border: 1px solid #BFDBFE;
+          color: #1D4ED8;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          border-radius: 10px;
+          padding: 10px 16px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          box-shadow: 0 1px 2px rgba(29,78,216,0.08);
+        }
+        .commissions-page .btn-lifecycle:hover {
+          background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+          border-color: #93C5FD;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(29,78,216,0.15);
+        }
+
+        .summary-box {
+          background: #ffffff;
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 24px;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .summary-section { display: flex; flex-direction: column; gap: 4px; }
+        .summary-section.right { text-align: right; align-items: flex-end; }
+        .summary-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; }
+        .summary-value { display: flex; align-items: center; gap: 6px; font-size: 0.9375rem; font-weight: 600; color: #111827; }
+        .summary-amount { font-size: 1.15rem; font-weight: 700; color: #059669; background: #ecfdf5; padding: 4px 10px; border-radius: 8px; border: 1px solid #a7f3d0; }
+        .summary-amount-blue { font-size: 1.15rem; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 4px 10px; border-radius: 8px; border: 1px solid #bfdbfe; }
+        .summary-divider { width: 1px; height: 32px; background: #e5e7eb; }
+
+        .lifecycle-timeline { position: relative; padding-left: 12px; margin-top: 12px; }
+        .lifecycle-timeline::before {
+          content: '';
+          position: absolute;
+          left: 30px;
+          top: 20px;
+          bottom: 40px;
+          width: 2px;
+          background: #e5e7eb;
+          z-index: 1;
+        }
+
+        .timeline-item { position: relative; display: flex; gap: 16px; margin-bottom: 16px; z-index: 2; }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-icon {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          background: #ffffff;
+          border: 2px solid;
+          box-shadow: 0 0 0 4px #ffffff;
+        }
+        .timeline-icon svg { width: 18px; height: 18px; }
+
+        .status-pending .timeline-icon { border-color: #d97706; color: #d97706; background: #fffbeb; }
+        .status-approved .timeline-icon { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+        .status-payout .timeline-icon { border-color: #9333ea; color: #9333ea; background: #faf5ff; }
+        .status-paid .timeline-icon { border-color: #059669; color: #059669; background: #ecfdf5; }
+
+        .status-pending .status-text { color: #d97706; }
+        .status-approved .status-text { color: #4f46e5; }
+        .status-payout .status-text { color: #9333ea; }
+        .status-paid .status-text { color: #059669; }
+
+        .timeline-card {
+          flex-grow: 1;
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+          transition: all 0.2s ease;
+        }
+        .timeline-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-color: #d1d5db; }
+        .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+        .stage-title-wrap { display: flex; flex-direction: column; gap: 2px; }
+        .stage-title { display: flex; align-items: center; gap: 8px; }
+        .stage-num { font-size: 0.75rem; font-weight: 700; color: #9ca3af; letter-spacing: 0.05em; }
+        .stage-title h3 { font-size: 0.9rem; font-weight: 700; color: #111827; text-transform: uppercase; letter-spacing: 0.02em; margin: 0; }
+        .status-text { font-size: 0.8rem; font-weight: 600; }
+        .meaning-text { font-size: 0.85rem; color: #6b7280; line-height: 1.5; margin-top: 4px; }
+
+        .product-snippet { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 10px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; }
+        .product-snippet img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(0,0,0,0.08); }
+        .product-info { display: flex; flex-direction: column; gap: 2px; }
+        .product-affiliate { font-size: 0.75rem; font-weight: 700; color: #2563EB; }
+        .product-name { font-size: 0.85rem; font-weight: 600; color: #111827; }
+        .product-meta { font-size: 0.75rem; color: #6b7280; }
+
+        .transition-label { margin: 10px 0 10px 58px; font-size: 0.72rem; font-weight: 700; color: #6b7280; display: flex; align-items: center; gap: 6px; letter-spacing: 0.05em; text-transform: uppercase; position: relative; z-index: 2; }
+        .transition-label svg { width: 14px; height: 14px; color: #9ca3af; }
       `}</style>
 
       <div className="commissions-page">
@@ -444,58 +577,125 @@ export default function Commissions() {
               <h1>Commissions</h1>
               <p>Review creator earnings and approve commissions</p>
             </div>
-            <button className="btn-ghost" onClick={exportCSV}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Export file
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn-lifecycle" onClick={() => setShowLifecycle(true)}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Commission Lifecycle
+              </button>
+              <button className="btn-ghost" onClick={exportCSV}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export file
+              </button>
+            </div>
           </div>
 
-          <div className="hero">
-            <div className="hero-art">
-              <div className="dots"></div>
-              <div className="stack">
-                <div className="mini c1">
-                  <div className="bar">Creator</div>
-                  <div className="body">
-                    <div className="avatar">SJ</div>
-                    <div className="line w80"></div>
-                    <div className="line w60"></div>
-                  </div>
-                  <span className="tag blue">
-                    <svg className="icon-sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.4l2-2a5 5 0 0 0-7-7l-1.2 1.1"/><path d="M14 11a5 5 0 0 0-7.5-.4l-2 2a5 5 0 0 0 7 7l1.1-1.1"/></svg>
-                    SARAHQ7X2
-                  </span>
+          <div className="saas-illustration-container">
+            {/* Background Decor */}
+            <div className="bg-dot-pattern"></div>
+            <div className="bg-glow-orb"></div>
+            
+            {/* Decorative organic background curves */}
+            <svg className="bg-curves" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice">
+                <path d="M -50 80 C 150 50, 200 300, 420 200 C 600 120, 700 350, 900 250" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeDasharray="6 8" strokeLinecap="round"/>
+                <path d="M 0 300 C 250 350, 300 100, 500 150 C 650 180, 750 80, 900 100" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" strokeDasharray="4 6"/>
+            </svg>
+
+            {/* Floating Decor Shapes */}
+            <svg className="deco deco-star" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L14.3162 9.13063H21.8155L15.7496 13.5387L18.0658 20.6694L12 16.2613L5.93417 20.6694L8.25036 13.5387L2.18446 9.13063H9.68378L12 2Z" fill="#FCD34D"/>
+            </svg>
+            <svg className="deco deco-plus" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 2V14M2 8H14" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+            <svg className="deco deco-diamond" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="12" y="2" width="14.1421" height="14.1421" transform="rotate(45 12 2)" fill="#A78BFA"/>
+            </svg>
+            <div className="deco deco-circle"></div>
+
+            {/* Creator Card */}
+            <div className="card-wrapper wrap-creator">
+                <div className="float-inner">
+                    <div className="ui-card">
+                        <div className="flex-row">
+                            <div className="illus-avatar">SJ</div>
+                            <div>
+                                <div className="text-tiny">Creator</div>
+                                <div className="text-medium">Sarah Jenkins</div>
+                            </div>
+                        </div>
+                        <div className="text-sub mt-3">Creator Program · Referral</div>
+                        <div className="illus-badge badge-green mt-3">
+                            <div className="status-dot"></div> Active referral
+                        </div>
+                    </div>
                 </div>
-                <div className="mini c2">
-                  <div className="bar">Referred order</div>
-                  <div className="body">
-                    <div className="line w60"></div>
-                    <div className="amount">{formatMoney(786)}</div>
-                  </div>
-                  <span className="tag blue">Order #1762</span>
-                </div>
-                <div className="mini c3">
-                  <div className="bar">Commission</div>
-                  <div className="body">
-                    <div className="amount">{formatMoney(102.17)}</div>
-                  </div>
-                  <span className="tag amber">
-                    <svg className="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-                    Pending
-                  </span>
-                </div>
-              </div>
             </div>
 
-            <div className="hero-copy">
-              <span className="eyebrow">Commission tracking</span>
-              <h2>Commission management</h2>
-              <p>Review creator earnings, approve commissions, and keep payouts organized.</p>
-              <ul className="bullets">
-                <li><span className="dot"></span><span><b>Review</b>&nbsp;commissions grouped by creator, with the source order attached.</span></li>
-                <li><span className="dot"></span><span><b>Approve</b>&nbsp;one at a time or in bulk before they move to a payout.</span></li>
-              </ul>
+            {/* Order Card */}
+            <div className="card-wrapper wrap-order">
+                <div className="float-inner">
+                    <div className="ui-card">
+                        <div className="flex-between">
+                            <div className="text-tiny">Referred order</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        </div>
+                        <div className="text-medium mt-3">Order #1762</div>
+                        <div className="text-sub">Order value · {formatMoney(786)}</div>
+                        <div className="thumbnail-row">
+                            <div className="thumb">
+                                <img src="/placeholder1.avif" alt="Product 1" />
+                            </div>
+                            <div className="thumb">
+                                <img src="/placeholder2.avif" alt="Product 2" />
+                            </div>
+                        </div>
+                        <div className="illus-badge badge-green mt-3">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Completed
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* MAIN Commission Card */}
+            <div className="card-wrapper wrap-commission">
+                <div className="float-inner">
+                    <div className="ui-card main-card">
+                        <div className="flex-between">
+                            <div className="text-tiny" style={{ color: "#3B82F6" }}>Commission</div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#3B82F6" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.2"><path d="M12 2L15 8.5L22 9.5L17 14.5L18.5 21.5L12 18L5.5 21.5L7 14.5L2 9.5L9 8.5L12 2Z"></path></svg>
+                        </div>
+                        <div className="amount-large">{formatMoney(102.17)}</div>
+                        <div className="text-sub">13% of commissionable order value</div>
+                        
+                        <div className="divider-line"></div>
+                        
+                        <div className="flex-between">
+                            <div className="text-tiny" style={{ margin: 0 }}>Status:</div>
+                            <div className="illus-badge badge-amber">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> 
+                                Pending review
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Payout Card */}
+            <div className="card-wrapper wrap-payout">
+                <div className="float-inner">
+                    <div className="ui-card small-card">
+                        <div className="text-tiny">Next step</div>
+                        <div className="text-medium">Creator payout</div>
+                        <div className="amount-medium">{formatMoney(180)}</div>
+                        
+                        <div className="illus-badge badge-blue mt-3">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> 
+                            Ready after approval
+                        </div>
+                    </div>
+                </div>
+            </div>
+
           </div>
 
           <div className="stats-row">
@@ -625,21 +825,31 @@ export default function Commissions() {
                               disabled={isBusy}
                               onClick={(e) => { e.stopPropagation(); run("approve", selectedInGroup.length > 0 ? selectedInGroup : ids); }}
                             >
-                              {selectedInGroup.length > 0 && selectedInGroup.length < ids.length 
-                                ? `Approve ${selectedInGroup.length}` 
-                                : `Approve all`}
+                              {isBusy
+                                ? "Working…"
+                                : selectedInGroup.length > 0 && selectedInGroup.length < ids.length
+                                  ? `Approve ${selectedInGroup.length}`
+                                  : `Approve all`}
                             </button>
                           )}
                           
+                          {status === "IN_PAYOUT" && (
+                            <a className="btn-approve" href="/app/payouts" onClick={(e) => e.stopPropagation()}>
+                              View payout
+                            </a>
+                          )}
+
                           {status === "APPROVED" && (
                             <button 
                               className="btn-dark" 
                               disabled={isBusy}
                               onClick={(e) => { e.stopPropagation(); run("payout", selectedInGroup.length > 0 ? selectedInGroup : ids, { creatorId: group.creatorId }); }}
                             >
-                              {selectedInGroup.length > 0 && selectedInGroup.length < ids.length 
-                                ? `Create payout (${selectedInGroup.length})` 
-                                : `Create payout (All)`}
+                              {isBusy
+                                ? "Working…"
+                                : selectedInGroup.length > 0 && selectedInGroup.length < ids.length
+                                  ? `Create payout (${selectedInGroup.length})`
+                                  : `Create payout (All)`}
                             </button>
                           )}
                         </div>
@@ -694,10 +904,22 @@ export default function Commissions() {
                               </div>
                               
                               <div className={`status-badge badge-${commission.status.toLowerCase()}`}>
-                                {commission.status === "APPROVED" ? "Ready for payout" : commission.status.charAt(0) + commission.status.slice(1).toLowerCase()}
+                                {commission.payoutId
+                                  ? "In payout"
+                                  : commission.status.charAt(0) + commission.status.slice(1).toLowerCase()}
                               </div>
                             </div>
                             
+                            {status === "PENDING" && (
+                              <button
+                                className="btn-approve"
+                                disabled={isBusy}
+                                onClick={(e) => { e.stopPropagation(); run("approve", [commission.id]); }}
+                              >
+                                {isBusy ? "Working…" : "Approve"}
+                              </button>
+                            )}
+
                             {(status === "PENDING" || status === "APPROVED") && !commission.payoutId && (
                               <button 
                                 className="btn-reject" 
@@ -832,6 +1054,148 @@ export default function Commissions() {
           )}
         </Modal.Section>
       </Modal>
+
+      <Modal open={showLifecycle} onClose={() => setShowLifecycle(false)} title="Commission Lifecycle">
+        <Modal.Section>
+          <div className="commissions-page" style={{ margin: 0, padding: 0, minHeight: 'auto', background: 'transparent' }}>
+            
+            {/* Summary Box */}
+            <div className="summary-box">
+              <div className="summary-section">
+                <span className="summary-label">Source Order</span>
+                <div className="summary-value">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                  #ORD-1762
+                </div>
+              </div>
+              <div className="summary-divider"></div>
+              <div className="summary-section">
+                <span className="summary-label">Order Total</span>
+                <div className="summary-amount-blue">
+                  {formatMoney(786)}
+                </div>
+              </div>
+              <div className="summary-divider"></div>
+              <div className="summary-section right">
+                <span className="summary-label">Total Commission</span>
+                <div className="summary-amount">
+                  {formatMoney(102.17)}
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div className="lifecycle-timeline">
+              
+              {/* Stage 1: Pending */}
+              <div className="timeline-item status-pending">
+                <div className="timeline-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div className="timeline-card">
+                  <div className="card-header">
+                    <div className="stage-title-wrap">
+                      <div className="stage-title">
+                        <span className="stage-num">01</span>
+                        <h3>Commission Pending</h3>
+                      </div>
+                      <div className="status-text">Waiting for review</div>
+                    </div>
+                  </div>
+                  <div className="meaning-text">An order was successfully placed via an affiliate referral link. The commission is recorded and pending standard review.</div>
+                  
+                  {/* Enhanced Product Snippet with Creator Attribution */}
+                  <div className="product-snippet">
+                    <img src="/placeholder1.avif" alt="Product" />
+                    <div className="product-info">
+                      <span className="product-affiliate">Referred by Sarah Jenkins (SARAHQ7X2)</span>
+                      <span className="product-name">Premium Wireless Headphones</span>
+                      <span className="product-meta">Order Total: {formatMoney(786)} • Qty: 1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transition */}
+              <div className="transition-label">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                Approve
+              </div>
+
+              {/* Stage 2: Approved */}
+              <div className="timeline-item status-approved">
+                <div className="timeline-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div className="timeline-card">
+                  <div className="card-header">
+                    <div className="stage-title-wrap">
+                      <div className="stage-title">
+                        <span className="stage-num">02</span>
+                        <h3>Commission Approved</h3>
+                      </div>
+                      <div className="status-text">Approved for payout</div>
+                    </div>
+                  </div>
+                  <div className="meaning-text">The merchant or return window passed. Commission is confirmed and ready to be attached to a creator payout.</div>
+                </div>
+              </div>
+
+              {/* Transition */}
+              <div className="transition-label">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                Create Payout
+              </div>
+
+              {/* Stage 3: Payout Created */}
+              <div className="timeline-item status-payout">
+                <div className="timeline-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                </div>
+                <div className="timeline-card">
+                  <div className="card-header">
+                    <div className="stage-title-wrap">
+                      <div className="stage-title">
+                        <span className="stage-num">03</span>
+                        <h3>Payout Created</h3>
+                      </div>
+                      <div className="status-text">Queued for processing</div>
+                    </div>
+                  </div>
+                  <div className="meaning-text">Payout batch <strong>#PAY-5521</strong> has been created and prepared for settlement.</div>
+                </div>
+              </div>
+
+              {/* Transition */}
+              <div className="transition-label">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                Transfer Funds
+              </div>
+
+              {/* Stage 4: Paid */}
+              <div className="timeline-item status-paid">
+                <div className="timeline-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z"></path></svg>
+                </div>
+                <div className="timeline-card">
+                  <div className="card-header">
+                    <div className="stage-title-wrap">
+                      <div className="stage-title">
+                        <span className="stage-num">04</span>
+                        <h3>Commission Paid</h3>
+                      </div>
+                      <div className="status-text">Transaction completed</div>
+                    </div>
+                  </div>
+                  <div className="meaning-text">The payout funds were successfully transferred to the creator's payout account.</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </Modal.Section>
+      </Modal>
+
     </Page>
   );
 }

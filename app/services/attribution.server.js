@@ -168,6 +168,10 @@ export async function attributeOrder({ shop, order }) {
           creatorId: creator.id,
           referralId: created.id,
           amount,
+          // The immutable baseline the refund ledger reconciles against. Without
+          // it, "Rs 120 originally, −Rs 40 refunded" has nothing to anchor to and
+          // the UI cannot tell an adjusted commission from an untouched one.
+          originalAmount: amount,
           status: "PENDING",
           // Stamped now rather than computed on read, so changing a program's
           // hold period never retroactively moves money that was already

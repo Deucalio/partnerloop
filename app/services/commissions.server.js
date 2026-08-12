@@ -18,6 +18,24 @@ import prisma from "../db.server";
 const ownedBy = (shop) => ({ creator: { program: { shopId: shop } } });
 
 /**
+ * Turn a UI tab into a query filter.
+ *
+ * `IN_PAYOUT` is not a stored status — it is `APPROVED` with a payout attached.
+ * Keeping the split here rather than in the database means a payout can be
+ * deleted or reassigned without a status migration.
+ */
+function tabFilter(tab) {
+  switch (tab) {
+    case "APPROVED":
+      return { status: "APPROVED", payoutId: null };
+    case "IN_PAYOUT":
+      return { status: "APPROVED", payoutId: { not: null } };
+    default:
+      return { status: tab };
+  }
+}
+
+/**
  * Commissions in one status, grouped by creator for review.
  *
  * Returns creator-level totals alongside the individual rows so a merchant can
@@ -25,7 +43,7 @@ const ownedBy = (shop) => ({ creator: { program: { shopId: shop } } });
  */
 export async function getCommissionsByCreator({ shop, status = "PENDING" }) {
   const commissions = await prisma.commission.findMany({
-    where: { ...ownedBy(shop), status },
+    where: { ...ownedBy(shop), ...tabFilter(status) },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -108,18 +126,38 @@ export async function getCommissionsByCreator({ shop, status = "PENDING" }) {
   };
 }
 
-/** Totals per tab, so the review screen can show counts without four queries. */
+/** Totals per tab, so the review screen can show counts without a query each. */
 export async function getCommissionTotals(shop) {
-  const rows = await prisma.commission.groupBy({
-    by: ["status"],
-    where: ownedBy(shop),
-    _sum: { amount: true },
-    _count: { _all: true },
-  });
+  const [rows, inPayout] = await Promise.all([
+    prisma.commission.groupBy({
+      by: ["status"],
+      where: ownedBy(shop),
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
+    prisma.commission.aggregate({
+      where: { ...ownedBy(shop), status: "APPROVED", payoutId: { not: null } },
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
+  ]);
 
-  return Object.fromEntries(
+  const totals = Object.fromEntries(
     rows.map((row) => [row.status, { amount: row._sum.amount ?? 0, count: row._count._all }]),
   );
+
+  // APPROVED from the groupBy covers both tabs, so split it.
+  const inPayoutTotal = { amount: inPayout._sum.amount ?? 0, count: inPayout._count._all };
+  const approvedTotal = totals.APPROVED ?? { amount: 0, count: 0 };
+
+  return {
+    ...totals,
+    APPROVED: {
+      amount: Number((approvedTotal.amount - inPayoutTotal.amount).toFixed(2)),
+      count: approvedTotal.count - inPayoutTotal.count,
+    },
+    IN_PAYOUT: inPayoutTotal,
+  };
 }
 
 /**
